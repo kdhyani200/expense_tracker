@@ -1,8 +1,18 @@
+import 'package:expense_tracker/main_screen.dart';
 import 'package:expense_tracker/screens/onboarding_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
+import 'firebase_options.dart';
+
 void main() async {
-  await Future.delayed(Duration(seconds: 3));
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Future.delayed(const Duration(seconds: 3));
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(const MyApp());
 }
 
@@ -12,7 +22,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Freshers Hub',
+      title: 'Track Kar',
       debugShowCheckedModeBanner: false,
 
       theme: ThemeData(
@@ -63,7 +73,22 @@ class MyApp extends StatelessWidget {
 
       themeMode: ThemeMode.system,
 
-      home: const OnBoarding(),
+      home: StreamBuilder(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (ctx, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          if (snapshot.hasData) {
+            return const MainScreen();
+          } else {
+            return const OnBoarding();
+          }
+        },
+      ),
     );
   }
 }

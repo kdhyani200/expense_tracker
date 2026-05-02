@@ -1,5 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../main_screen.dart';
+
+var _firebase = FirebaseAuth.instance;
 
 class AuthenticationScreen extends StatefulWidget {
   const AuthenticationScreen({super.key});
@@ -10,18 +16,110 @@ class AuthenticationScreen extends StatefulWidget {
 
 class _AuthenticationScreenState extends State<AuthenticationScreen> {
   final _formKey = GlobalKey<FormState>();
+
   var _isLogin = true;
-  final _isAuthenticating = false;
+  var _isAuthenticating = false;
 
   var enteredEmail = '';
   var enteredPassword = '';
   var enteredFirstName = '';
   var enteredLastName = '';
 
-  void _submit() {
+  Future<void> _submit() async {
+    if (_isAuthenticating) return;
+
+    FocusScope.of(context).unfocus();
+
     final isValid = _formKey.currentState!.validate();
     if (!isValid) return;
+
     _formKey.currentState!.save();
+
+    try {
+      setState(() {
+        _isAuthenticating = true;
+      });
+
+      UserCredential userCredential;
+
+      if (_isLogin) {
+        userCredential = await _firebase.signInWithEmailAndPassword(
+          email: enteredEmail.trim(),
+          password: enteredPassword.trim(),
+        );
+      } else {
+        userCredential = await _firebase.createUserWithEmailAndPassword(
+          email: enteredEmail.trim(),
+          password: enteredPassword.trim(),
+        );
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set({
+              'firstname': enteredFirstName.trim(),
+              'lastname': enteredLastName.trim(),
+              'email': enteredEmail.trim(),
+            });
+      }
+
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const MainScreen()),
+          (route) => false,
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      final message = _getAuthErrorMessage(e);
+      _showSnackBar(message);
+    } catch (_) {
+      _showSnackBar('Something went wrong. Please try again.');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAuthenticating = false;
+        });
+      }
+    }
+  }
+
+  String _getAuthErrorMessage(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'invalid-email':
+        return 'Please enter a valid email address';
+
+      case 'email-already-in-use':
+        return 'This email is already registered';
+
+      case 'weak-password':
+        return 'Password should be at least 6 characters';
+
+      case 'user-not-found':
+      case 'wrong-password':
+        return 'Invalid email or password';
+
+      case 'too-many-requests':
+        return 'Too many attempts. Try again later';
+
+      case 'network-request-failed':
+        return 'No internet connection';
+
+      default:
+        return 'Authentication failed. Please try again';
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFF00885d),
+        content: Text(message, style: TextStyle(color: Colors.white)),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   // HELPER METHOD TO APPLY CONSISTENT OUTLINE BORDER TO ALL FIELDS
