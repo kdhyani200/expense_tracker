@@ -1,4 +1,4 @@
-import 'package:expense_tracker/main_screen.dart';
+import 'package:expense_tracker/screens/main_screen.dart';
 import 'package:expense_tracker/screens/onboarding_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
