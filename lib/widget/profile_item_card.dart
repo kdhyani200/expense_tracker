@@ -7,6 +7,7 @@ class ProfileItemCard extends StatelessWidget {
     required this.color,
     required this.label,
   });
+
   final IconData icon;
   final Color color;
   final String label;
@@ -45,7 +46,7 @@ class ProfileItemCard extends StatelessWidget {
           // Label and Description
           Expanded(
             child: Text(
-              "Item",
+              label,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),

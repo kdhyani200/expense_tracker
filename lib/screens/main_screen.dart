@@ -56,10 +56,7 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(Icons.account_balance_wallet_rounded),
             label: 'Wallet',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline_rounded),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
