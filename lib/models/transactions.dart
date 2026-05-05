@@ -97,7 +97,7 @@ List<Transaction> recentTransactions = [
     icon: Icons.attach_money_rounded,
     color: Colors.green,
     label: 'Income',
-    description: 'Cashback from Credit Card',
+    description: '',
     amount: '90',
     date: DateTime(2026, 12, 9),
     isIncome: true,

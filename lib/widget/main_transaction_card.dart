@@ -5,7 +5,7 @@ class TransactionItemCard extends StatelessWidget {
   final IconData icon;
   final Color color;
   final String label;
-  final String description;
+  final String? description;
   final String amount;
   final DateTime date;
   final bool isIncome;
@@ -15,7 +15,7 @@ class TransactionItemCard extends StatelessWidget {
     required this.icon,
     required this.color,
     required this.label,
-    required this.description,
+    this.description,
     required this.amount,
     required this.date,
     required this.isIncome,
@@ -66,8 +66,10 @@ class TransactionItemCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  description,
+                  description!,
                   style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
