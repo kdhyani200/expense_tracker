@@ -18,7 +18,6 @@ class ProfileItemCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        // Use a dark grey to match the image background
         color: const Color(0xFFffffff),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
@@ -32,7 +31,6 @@ class ProfileItemCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Icon Container
           Container(
             width: 40,
             height: 40,
@@ -43,14 +41,12 @@ class ProfileItemCard extends StatelessWidget {
             child: Icon(icon, color: color, size: 25),
           ),
           const SizedBox(width: 16),
-          // Label and Description
           Expanded(
             child: Text(
               label,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
-          // Amount and Date
           Icon(Icons.arrow_forward_ios, size: 16),
         ],
       ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'auth.dart'; // Ensure path is correct
+import 'auth.dart';
 
 class OnBoarding extends StatelessWidget {
   const OnBoarding({super.key});
@@ -26,7 +26,6 @@ class OnBoarding extends StatelessWidget {
         body: SafeArea(
           child: Stack(
             children: [
-              // Top Login Button
               Align(
                 alignment: Alignment.topRight,
                 child: Padding(
@@ -50,7 +49,6 @@ class OnBoarding extends StatelessWidget {
                 child: Column(
                   children: [
                     const Spacer(flex: 1),
-                    // Image Container
                     Container(
                       width: media.size.width * 0.7,
                       height: media.size.width * 0.7,
@@ -125,7 +123,6 @@ class OnBoarding extends StatelessWidget {
 
                     const Spacer(),
 
-                    // Get Started Button
                     SizedBox(
                       width: double.infinity,
                       height: 56,
@@ -138,20 +135,20 @@ class OnBoarding extends StatelessWidget {
                           backgroundColor: const Color(0xFF00885d),
                         ),
                         onPressed: () {
-                          // Navigator.of(context).pushAndRemoveUntil(
-                          //   MaterialPageRoute(
-                          //     builder: (context) =>
-                          //         const AuthenticationScreen(),
-                          //   ),
-                          //   (route) => false,
-                          // );
-                          Navigator.push(
-                            context,
+                          Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
                               builder: (context) =>
                                   const AuthenticationScreen(),
                             ),
+                            (route) => false,
                           );
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) =>
+                          //         const AuthenticationScreen(),
+                          //   ),
+                          // );
                         },
                         child: const Text(
                           "Get Started",

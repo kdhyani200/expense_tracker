@@ -82,7 +82,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   width: double.infinity,
                   child: Column(
                     children: [
-                      // Responsive Profile Image Container
                       GestureDetector(
                         onTap: _openEditProfilePicture,
                         child: Container(
@@ -125,7 +124,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 SizedBox(height: verticalSpacing),
-                // Profile Options List
                 Column(
                   children: const [
                     ProfileItemCard(

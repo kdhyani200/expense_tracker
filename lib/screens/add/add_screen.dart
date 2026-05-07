@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../models/transaction_item.dart';
+import '../../providers/transactions_providers.dart';
 import '../../providers/wallet_providers.dart';
+import '../../snackbar_util.dart';
 
 class AddScreen extends ConsumerStatefulWidget {
   const AddScreen({super.key});
@@ -13,22 +16,20 @@ class AddScreen extends ConsumerStatefulWidget {
 class _AddScreenState extends ConsumerState<AddScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Form Values
   String _selectedType = 'Expense';
   String? _selectedWallet;
   String? _selectedCategory;
+
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
   final List<String> _types = ['Expense', 'Income'];
-  final List<String> _categories = [
-    'Food',
-    'Transport',
-    'Shopping',
-    'Bills',
-    'Entertainment',
-  ];
+
+  List<String> get _categories => ExpenseCategory.values.map((c) {
+    final name = c.toString().split('.').last;
+    return name[0].toUpperCase() + name.substring(1).toLowerCase();
+  }).toList();
 
   InputDecoration _buildInputDecoration(String hint) {
     return InputDecoration(
@@ -58,32 +59,27 @@ class _AddScreenState extends ConsumerState<AddScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> _wallets = ref
-        .read(walletsProvider.notifier)
-        .getWalletNames();
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
+    final wallets = ref.watch(walletsProvider);
+    final List<String> walletNames = wallets.map((w) => w.name).toList();
 
-    final horizontalPadding = screenWidth * 0.05;
-    final verticalSpacing = screenHeight * 0.02;
-    final labelStyle = TextStyle(
-      fontSize: screenWidth * 0.042,
+    final screenHeight = MediaQuery.of(context).size.height;
+    final labelStyle = const TextStyle(
+      fontSize: 16,
       fontWeight: FontWeight.w600,
       color: Colors.black87,
     );
 
     return Padding(
-      padding: EdgeInsets.only(top: screenHeight * 0.06),
+      padding: EdgeInsets.only(top: screenHeight * 0.12),
       child: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
         ),
         child: Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: Colors.transparent,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: Colors.transparent,
             elevation: 0,
             leading: const BackButton(color: Colors.black),
             title: const Text(
@@ -102,18 +98,17 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                 children: [
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: horizontalPadding,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(height: verticalSpacing),
+                          const SizedBox(height: 20),
 
                           // TYPE DROPDOWN
                           _buildFieldLabel("Type", false, labelStyle),
                           DropdownButtonFormField<String>(
                             initialValue: _selectedType,
+                            isExpanded: true,
                             decoration: _buildInputDecoration("Select Type"),
                             items: _types
                                 .map(
@@ -126,21 +121,21 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                             onChanged: (val) {
                               setState(() {
                                 _selectedType = val!;
-                                // Reset category if switching to Income
                                 if (_selectedType == 'Income')
                                   _selectedCategory = null;
                               });
                             },
                           ),
 
-                          SizedBox(height: verticalSpacing),
+                          const SizedBox(height: 20),
 
                           // WALLET DROPDOWN
                           _buildFieldLabel("Wallet", false, labelStyle),
                           DropdownButtonFormField<String>(
                             initialValue: _selectedWallet,
+                            isExpanded: true,
                             decoration: _buildInputDecoration("Select Wallet"),
-                            items: _wallets
+                            items: walletNames
                                 .map(
                                   (w) => DropdownMenuItem(
                                     value: w,
@@ -154,12 +149,13 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                                 val == null ? "Please select a wallet" : null,
                           ),
 
-                          // CONDITIONAL CATEGORY DROPDOWN
+                          // CATEGORY DROPDOWN
                           if (_selectedType == 'Expense') ...[
-                            SizedBox(height: verticalSpacing),
+                            const SizedBox(height: 20),
                             _buildFieldLabel("Category", false, labelStyle),
                             DropdownButtonFormField<String>(
-                              value: _selectedCategory,
+                              initialValue: _selectedCategory,
+                              isExpanded: true,
                               decoration: _buildInputDecoration(
                                 "Select Category",
                               ),
@@ -180,7 +176,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                             ),
                           ],
 
-                          SizedBox(height: verticalSpacing),
+                          const SizedBox(height: 20),
 
                           // DATE PICKER
                           _buildFieldLabel("Date", false, labelStyle),
@@ -190,7 +186,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                             decoration: _buildInputDecoration("Select Date")
                                 .copyWith(
                                   suffixIcon: const Icon(
-                                    Icons.calendar_today,
+                                    Icons.calendar_month,
                                     size: 20,
                                   ),
                                 ),
@@ -199,7 +195,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                                 context: context,
                                 initialDate: DateTime.now(),
                                 firstDate: DateTime(2000),
-                                lastDate: DateTime(2101),
+                                lastDate: DateTime.now(),
                               );
                               if (pickedDate != null) {
                                 setState(
@@ -213,7 +209,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                                 : null,
                           ),
 
-                          SizedBox(height: verticalSpacing),
+                          const SizedBox(height: 20),
 
                           // AMOUNT
                           _buildFieldLabel("Amount", false, labelStyle),
@@ -224,22 +220,24 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                             validator: (val) {
                               if (val == null || val.isEmpty)
                                 return "Enter an amount";
-                              if (double.tryParse(val) == null)
-                                return "Enter a valid number";
+                              final amount = double.tryParse(val);
+                              if (amount == null) return "Enter a valid number";
+                              if (amount <= 0)
+                                return "Amount must be greater than zero";
                               return null;
                             },
                           ),
 
-                          SizedBox(height: verticalSpacing),
+                          const SizedBox(height: 20),
 
-                          // DESCRIPTION (Now Permanent)
+                          // DESCRIPTION
                           _buildFieldLabel("Description ", true, labelStyle),
                           TextFormField(
                             controller: _descriptionController,
                             maxLines: 3,
                             decoration: _buildInputDecoration("Add a note..."),
                           ),
-                          SizedBox(height: verticalSpacing * 2),
+                          const SizedBox(height: 40),
                         ],
                       ),
                     ),
@@ -247,15 +245,74 @@ class _AddScreenState extends ConsumerState<AddScreen> {
 
                   // SUBMIT BUTTON
                   Padding(
-                    padding: EdgeInsets.all(horizontalPadding),
+                    padding: const EdgeInsets.all(20),
                     child: SizedBox(
                       width: double.infinity,
                       height: 55,
                       child: ElevatedButton(
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
-                            // Process Data
+                            final type = _selectedType == 'Expense'
+                                ? Type.Expense
+                                : Type.Income;
+                            final enteredAmount = double.parse(
+                              _amountController.text,
+                            );
+
+                            final selectedWalletData = wallets.firstWhere(
+                              (w) => w.name == _selectedWallet,
+                            );
+                            final currentBalance = double.parse(
+                              selectedWalletData.amount,
+                            );
+
+                            if (type == Type.Expense &&
+                                currentBalance < enteredAmount) {
+                              SnackBarUtils.showSnackBar(
+                                context,
+                                "Insufficient funds!",
+                                isError: true,
+                              );
+                              return;
+                            }
+
+                            final category = _selectedType == 'Income'
+                                ? ExpenseCategory.other
+                                : ExpenseCategory.values.firstWhere(
+                                    (c) =>
+                                        c.toString().split('.').last ==
+                                        _selectedCategory,
+                                  );
+
+                            final newTransaction = Transaction(
+                              type: type,
+                              wallet: _selectedWallet!,
+                              category: category,
+                              date:
+                                  DateTime.tryParse(_dateController.text) ??
+                                  DateTime.now(),
+                              amount: _amountController.text,
+                              description: _descriptionController.text.isEmpty
+                                  ? null
+                                  : _descriptionController.text,
+                            );
+
+                            ref
+                                .read(transactionsProvider.notifier)
+                                .addTransaction(newTransaction);
+                            ref
+                                .read(walletsProvider.notifier)
+                                .updateWalletBalance(
+                                  _selectedWallet!,
+                                  _amountController.text,
+                                  type,
+                                );
+
                             Navigator.pop(context);
+                            SnackBarUtils.showSnackBar(
+                              context,
+                              "Transaction Saved!",
+                            );
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -287,21 +344,18 @@ class _AddScreenState extends ConsumerState<AddScreen> {
 
   Widget _buildFieldLabel(String label, bool isOptional, TextStyle style) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.only(bottom: 8.0, left: 4.0),
       child: RichText(
         text: TextSpan(
           children: [
-            TextSpan(
-              text: label,
-              style: style, // Your existing black bold style
-            ),
+            TextSpan(text: label, style: style),
             if (isOptional)
               TextSpan(
                 text: " (Optional)",
                 style: style.copyWith(
                   color: Colors.grey,
                   fontWeight: FontWeight.w400,
-                  fontSize: style.fontSize! * 0.9, // Slightly smaller
+                  fontSize: style.fontSize! * 0.9,
                 ),
               ),
           ],

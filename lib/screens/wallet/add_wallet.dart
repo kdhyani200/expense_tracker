@@ -15,7 +15,6 @@ class _AddWalletScreenState extends State<AddWalletScreen> {
   final TextEditingController _nameController = TextEditingController();
   File? _selectedImage;
 
-  // Reusable decoration for consistent Freshers Hub UI
   InputDecoration _buildInputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
@@ -65,38 +64,43 @@ class _AddWalletScreenState extends State<AddWalletScreen> {
               ),
             ),
           ),
-          body: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 20),
-                      const Text(
-                        "Wallet Name",
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _nameController,
-                        decoration: _buildInputDecoration("e.g. Secret vault"),
-                        autofocus: true,
-                      ),
-                      const SizedBox(height: 30),
-                      const Text(
-                        "Wallet Icon",
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildIconPicker(),
-                    ],
+          body: GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 20),
+                        const Text(
+                          "Wallet Name",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          textCapitalization: TextCapitalization.words,
+                          controller: _nameController,
+                          decoration: _buildInputDecoration(
+                            "e.g. Secret vault",
+                          ),
+                        ),
+                        const SizedBox(height: 30),
+                        const Text(
+                          "Wallet Icon",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildIconPicker(),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              _buildAddButton(),
-            ],
+                _buildAddButton(),
+              ],
+            ),
           ),
         ),
       ),
@@ -150,11 +154,9 @@ class _AddWalletScreenState extends State<AddWalletScreen> {
           onPressed: () {
             final name = _nameController.text.trim();
             if (name.isNotEmpty) {
-              // Trigger the Riverpod action via callback
               widget.onAdd(name, _selectedImage);
-              Navigator.pop(context); // Close the sheet
+              Navigator.pop(context);
             } else {
-              // Simple validation feedback
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Please enter a wallet name")),
               );

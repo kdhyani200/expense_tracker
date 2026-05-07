@@ -113,17 +113,19 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                     ),
                     const SizedBox(height: 10),
                     Expanded(
-                      child: ListView.builder(
-                        itemCount: allWallets.length,
-                        itemBuilder: (context, index) {
-                          final wallet = allWallets[index];
-                          return WalletCard(
-                            wallet: wallet,
-                            onTap: () =>
-                                _openUpdateWallet(context, wallet, index),
-                          );
-                        },
-                      ),
+                      child: allWallets.isEmpty
+                          ? _buildEmptyState(context)
+                          : ListView.builder(
+                              itemCount: allWallets.length,
+                              itemBuilder: (context, index) {
+                                final wallet = allWallets[index];
+                                return WalletCard(
+                                  wallet: wallet,
+                                  onTap: () =>
+                                      _openUpdateWallet(context, wallet, index),
+                                );
+                              },
+                            ),
                     ),
                   ],
                 ),
@@ -134,4 +136,31 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
       ),
     );
   }
+}
+
+Widget _buildEmptyState(BuildContext context) {
+  return Center(
+    child: Padding(
+      padding: const EdgeInsets.only(top: 40.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.hourglass_empty, size: 80, color: Colors.grey.shade300),
+          const SizedBox(height: 16),
+          Text(
+            "No wallets",
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey.shade500,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            "Add your first wallet to see it here.",
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+          ),
+        ],
+      ),
+    ),
+  );
 }

@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../snackbar_util.dart';
+
 class AddProfilePictureScreen extends StatefulWidget {
   const AddProfilePictureScreen({
     super.key,
@@ -49,7 +51,6 @@ class _AddProfilePictureScreenState extends State<AddProfilePictureScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize the local state with the existing image
     _selectedImage = widget.initialImage;
   }
 
@@ -65,8 +66,8 @@ class _AddProfilePictureScreenState extends State<AddProfilePictureScreen> {
       _selectedImage = File(pickedImage.path);
     });
 
-    // We close the bottom sheet after selection
     if (mounted) Navigator.pop(context);
+    SnackBarUtils.showSnackBar(context, "Picture Added Successfully!");
   }
 
   void _takePictureViaGallery() async {
@@ -82,6 +83,7 @@ class _AddProfilePictureScreenState extends State<AddProfilePictureScreen> {
     });
 
     if (mounted) Navigator.pop(context);
+    SnackBarUtils.showSnackBar(context, "Picture Added Successfully!");
   }
 
   void _showImagePicker(BuildContext context) {
@@ -127,7 +129,6 @@ class _AddProfilePictureScreenState extends State<AddProfilePictureScreen> {
     );
   }
 
-  // Helper widget for picker options
   Widget _imagePickerOption({
     required IconData icon,
     required String label,
@@ -159,7 +160,6 @@ class _AddProfilePictureScreenState extends State<AddProfilePictureScreen> {
     final horizontalPadding = screenWidth * 0.05;
     final verticalSpacing = screenHeight * 0.02;
 
-    // 1. Scaffold should be at the ROOT
     return Padding(
       padding: EdgeInsets.only(top: verticalSpacing * 2),
       child: Scaffold(
@@ -173,11 +173,9 @@ class _AddProfilePictureScreenState extends State<AddProfilePictureScreen> {
             style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
           ),
         ),
-        // 2. Wrap the body in GestureDetector and SafeArea
         body: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
-          behavior:
-              HitTestBehavior.opaque, // Ensures the whole area catches the tap
+          behavior: HitTestBehavior.opaque,
           child: SafeArea(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
@@ -190,8 +188,7 @@ class _AddProfilePictureScreenState extends State<AddProfilePictureScreen> {
                         Container(
                           width: profileImageSize,
                           height: profileImageSize,
-                          clipBehavior:
-                              Clip.antiAlias, // Ensures image stays circular
+                          clipBehavior: Clip.antiAlias,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Colors.grey.shade200,
@@ -220,7 +217,7 @@ class _AddProfilePictureScreenState extends State<AddProfilePictureScreen> {
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: Colors.black.withValues(alpha: 0.1),
                                     blurRadius: 5,
                                   ),
                                 ],
@@ -240,8 +237,7 @@ class _AddProfilePictureScreenState extends State<AddProfilePictureScreen> {
                     TextButton(
                       onPressed: () {
                         setState(() {
-                          _selectedImage =
-                              null; // Reverts to the default person icon
+                          _selectedImage = null;
                         });
                       },
                       child: const Text(
@@ -265,10 +261,9 @@ class _AddProfilePictureScreenState extends State<AddProfilePictureScreen> {
                   SizedBox(height: verticalSpacing),
                   TextField(
                     controller: TextEditingController(text: widget.lastName),
-                    decoration: _buildInputDecoration('Last Name').copyWith(
-                      // CHANGE THIS COLOR
-                      hintStyle: const TextStyle(color: Colors.grey),
-                    ),
+                    decoration: _buildInputDecoration(
+                      'Last Name',
+                    ).copyWith(hintStyle: const TextStyle(color: Colors.grey)),
                     onSubmitted: (_) => FocusScope.of(context).nextFocus(),
                   ),
                   const Spacer(),

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../models/wallet.dart';
@@ -18,7 +17,6 @@ class WalletCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: Row(
           children: [
-            // Icon/Image Container
             Container(
               width: 50,
               height: 50,
@@ -35,7 +33,6 @@ class WalletCard extends StatelessWidget {
             ),
             const SizedBox(width: 16),
 
-            // Text Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

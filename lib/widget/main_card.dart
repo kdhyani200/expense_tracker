@@ -1,24 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class MainCard extends StatefulWidget {
+import '../providers/transactions_providers.dart';
+import '../providers/wallet_providers.dart';
+
+class MainCard extends ConsumerStatefulWidget {
   const MainCard({super.key});
 
   @override
-  State<MainCard> createState() => _MainCardState();
+  ConsumerState<MainCard> createState() => _MainCardState();
 }
 
-class _MainCardState extends State<MainCard> {
+class _MainCardState extends ConsumerState<MainCard> {
   @override
   Widget build(BuildContext context) {
+    final transactionLogic = ref.watch(transactionsProvider.notifier);
+    final overallIncome = transactionLogic.totalIncome;
+    final overExpense = transactionLogic.totalExpenses;
+    final allWallets = ref.watch(walletsProvider);
+    double total = allWallets.fold(
+      0,
+      (sum, item) => sum + double.parse(item.amount),
+    );
+
     final media = MediaQuery.of(context);
-    // Using a Container with decoration for better shadow control
-    // compared to a standard Card widget.
     return Container(
       width: double.infinity,
       height: media.size.height * 0.28,
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
-        color: const Color(0xFF10b981), // Emerald Green
+        color: const Color(0xFF10b981),
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
@@ -42,9 +53,9 @@ class _MainCardState extends State<MainCard> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            "₹12,480.00",
-            style: TextStyle(
+          Text(
+            "₹${total}",
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 32,
               fontWeight: FontWeight.bold,
@@ -56,17 +67,15 @@ class _MainCardState extends State<MainCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Income Section
               _buildBalanceDetail(
                 icon: Icons.arrow_downward,
                 label: "Income",
-                amount: "₹4,250.00",
+                amount: "₹$overallIncome",
               ),
-              // Expenses Section
               _buildBalanceDetail(
                 icon: Icons.arrow_upward,
-                label: "Expenses",
-                amount: "₹1,820.00",
+                label: "Expense",
+                amount: "₹$overExpense",
               ),
             ],
           ),

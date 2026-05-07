@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../snackbar_util.dart';
 import 'main_screen.dart';
 
 var _firebase = FirebaseAuth.instance;
@@ -71,9 +72,13 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
       }
     } on FirebaseAuthException catch (e) {
       final message = _getAuthErrorMessage(e);
-      _showSnackBar(message);
+      SnackBarUtils.showSnackBar(context, message);
     } catch (_) {
-      _showSnackBar('Something went wrong. Please try again.');
+      SnackBarUtils.showSnackBar(
+        context,
+        'Something went wrong. Please try again.',
+        isError: true,
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -109,20 +114,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
     }
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: const Color(0xFF00885d),
-        content: Text(message, style: TextStyle(color: Colors.white)),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
-  }
-
-  // HELPER METHOD TO APPLY CONSISTENT OUTLINE BORDER TO ALL FIELDS
   InputDecoration _buildInputDecoration(String hint, IconData icon) {
     return InputDecoration(
       hintText: hint,
@@ -149,7 +140,7 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final mediaQuery = MediaQuery.of(context); // Cache mediaQuery
+    final mediaQuery = MediaQuery.of(context);
 
     return Scaffold(
       body: GestureDetector(
@@ -160,18 +151,13 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
           ),
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20.0,
-              ), // Consistent padding
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: ConstrainedBox(
-                // Control form width on larger screens
                 constraints: const BoxConstraints(maxWidth: 600),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    SizedBox(
-                      height: mediaQuery.padding.top + 60,
-                    ), // Responsive top space
+                    SizedBox(height: mediaQuery.padding.top + 60),
                     // TITLE SECTION
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -202,7 +188,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      // margin removed - using SingleChildScrollView padding instead
                       child: Padding(
                         padding: const EdgeInsets.all(20),
                         child: Form(
@@ -240,7 +225,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                                         'First Name',
                                         Icons.person_2_outlined,
                                       ).copyWith(
-                                        // CHANGE THIS COLOR
                                         hintStyle: const TextStyle(
                                           color: Colors.grey,
                                         ),
@@ -258,7 +242,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                                         'Last Name',
                                         Icons.person_2_outlined,
                                       ).copyWith(
-                                        // CHANGE THIS COLOR
                                         hintStyle: const TextStyle(
                                           color: Colors.grey,
                                         ),
@@ -279,7 +262,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                                       'Email',
                                       Icons.email_outlined,
                                     ).copyWith(
-                                      // CHANGE THIS COLOR
                                       hintStyle: const TextStyle(
                                         color: Colors.grey,
                                       ),
@@ -299,7 +281,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                                       'Password',
                                       Icons.lock_outline,
                                     ).copyWith(
-                                      // CHANGE THIS COLOR
                                       hintStyle: const TextStyle(
                                         color: Colors.grey,
                                       ),
@@ -312,7 +293,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                               ),
                               const SizedBox(height: 5),
 
-                              // --- FORGOT PASSWORD SECTION ---
                               if (_isLogin)
                                 Align(
                                   alignment: Alignment.centerRight,
@@ -329,7 +309,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                                   ),
                                 ),
 
-                              // -------------------------------
                               const SizedBox(height: 20),
 
                               SizedBox(
