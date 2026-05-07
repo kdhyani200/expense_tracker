@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AddScreen extends StatefulWidget {
+import '../../providers/wallet_providers.dart';
+
+class AddScreen extends ConsumerStatefulWidget {
   const AddScreen({super.key});
 
   @override
-  State<AddScreen> createState() => _AddScreenState();
+  ConsumerState<AddScreen> createState() => _AddScreenState();
 }
 
-class _AddScreenState extends State<AddScreen> {
+class _AddScreenState extends ConsumerState<AddScreen> {
   final _formKey = GlobalKey<FormState>();
 
   // Form Values
@@ -19,7 +22,6 @@ class _AddScreenState extends State<AddScreen> {
   final TextEditingController _descriptionController = TextEditingController();
 
   final List<String> _types = ['Expense', 'Income'];
-  final List<String> _wallets = ['Cash', 'Bank Account', 'Credit Card'];
   final List<String> _categories = [
     'Food',
     'Transport',
@@ -56,6 +58,9 @@ class _AddScreenState extends State<AddScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final List<String> _wallets = ref
+        .read(walletsProvider.notifier)
+        .getWalletNames();
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -69,7 +74,7 @@ class _AddScreenState extends State<AddScreen> {
     );
 
     return Padding(
-      padding: EdgeInsets.only(top: screenHeight * 0.10),
+      padding: EdgeInsets.only(top: screenHeight * 0.06),
       child: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
@@ -108,7 +113,7 @@ class _AddScreenState extends State<AddScreen> {
                           // TYPE DROPDOWN
                           _buildFieldLabel("Type", false, labelStyle),
                           DropdownButtonFormField<String>(
-                            value: _selectedType,
+                            initialValue: _selectedType,
                             decoration: _buildInputDecoration("Select Type"),
                             items: _types
                                 .map(
@@ -133,7 +138,7 @@ class _AddScreenState extends State<AddScreen> {
                           // WALLET DROPDOWN
                           _buildFieldLabel("Wallet", false, labelStyle),
                           DropdownButtonFormField<String>(
-                            value: _selectedWallet,
+                            initialValue: _selectedWallet,
                             decoration: _buildInputDecoration("Select Wallet"),
                             items: _wallets
                                 .map(

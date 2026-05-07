@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class Transaction {
+class TransactionCard {
   final IconData icon;
   final Color color;
   final String label;
@@ -9,7 +9,7 @@ class Transaction {
   final DateTime date;
   final bool isIncome;
 
-  Transaction({
+  TransactionCard({
     required this.icon,
     required this.color,
     required this.label,
@@ -20,8 +20,8 @@ class Transaction {
   });
 }
 
-List<Transaction> recentTransactions = [
-  Transaction(
+List<TransactionCard> recentTransactions = [
+  TransactionCard(
     icon: Icons.favorite_rounded,
     color: const Color(0xFFE91E63),
     label: 'Health',
@@ -30,7 +30,7 @@ List<Transaction> recentTransactions = [
     date: DateTime(2026, 12, 11),
     isIncome: false,
   ),
-  Transaction(
+  TransactionCard(
     icon: Icons.attach_money_rounded,
     color: Colors.green,
     label: 'Income',
@@ -39,7 +39,7 @@ List<Transaction> recentTransactions = [
     date: DateTime(2026, 12, 10),
     isIncome: true,
   ),
-  Transaction(
+  TransactionCard(
     icon: Icons.checkroom_rounded,
     color: Colors.deepPurpleAccent,
     label: 'Clothing',
@@ -48,7 +48,7 @@ List<Transaction> recentTransactions = [
     date: DateTime(2026, 12, 10),
     isIncome: false,
   ),
-  Transaction(
+  TransactionCard(
     icon: Icons.attach_money_rounded,
     color: Colors.green,
     label: 'Income',
@@ -57,7 +57,7 @@ List<Transaction> recentTransactions = [
     date: DateTime(2026, 12, 9),
     isIncome: true,
   ),
-  Transaction(
+  TransactionCard(
     icon: Icons.restaurant_rounded,
     color: const Color(0xFFC2185B),
     label: 'Dining',
@@ -66,7 +66,7 @@ List<Transaction> recentTransactions = [
     date: DateTime(2026, 12, 8),
     isIncome: false,
   ),
-  Transaction(
+  TransactionCard(
     icon: Icons.favorite_rounded,
     color: const Color(0xFFE91E63),
     label: 'Health',
@@ -75,7 +75,7 @@ List<Transaction> recentTransactions = [
     date: DateTime(2026, 12, 11),
     isIncome: false,
   ),
-  Transaction(
+  TransactionCard(
     icon: Icons.attach_money_rounded,
     color: Colors.green,
     label: 'Income',
@@ -84,7 +84,7 @@ List<Transaction> recentTransactions = [
     date: DateTime(2026, 12, 10),
     isIncome: true,
   ),
-  Transaction(
+  TransactionCard(
     icon: Icons.checkroom_rounded,
     color: Colors.deepPurpleAccent,
     label: 'Clothing',
@@ -93,7 +93,7 @@ List<Transaction> recentTransactions = [
     date: DateTime(2026, 12, 10),
     isIncome: false,
   ),
-  Transaction(
+  TransactionCard(
     icon: Icons.attach_money_rounded,
     color: Colors.green,
     label: 'Income',
@@ -102,7 +102,7 @@ List<Transaction> recentTransactions = [
     date: DateTime(2026, 12, 9),
     isIncome: true,
   ),
-  Transaction(
+  TransactionCard(
     icon: Icons.restaurant_rounded,
     color: const Color(0xFFC2185B),
     label: 'Dining',

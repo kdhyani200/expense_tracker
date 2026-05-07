@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Added this import
 import 'package:flutter/material.dart';
-import '../widget/profile_item_card.dart';
+import '../../widget/profile_item_card.dart';
 import 'edit_profile_picture.dart';
 
 class ProfileScreen extends StatefulWidget {

@@ -43,7 +43,7 @@ class _MainCardState extends State<MainCard> {
           ),
           const SizedBox(height: 8),
           const Text(
-            "\$12,480.00",
+            "₹12,480.00",
             style: TextStyle(
               color: Colors.white,
               fontSize: 32,
@@ -60,13 +60,13 @@ class _MainCardState extends State<MainCard> {
               _buildBalanceDetail(
                 icon: Icons.arrow_downward,
                 label: "Income",
-                amount: "\$4,250.00",
+                amount: "₹4,250.00",
               ),
               // Expenses Section
               _buildBalanceDetail(
                 icon: Icons.arrow_upward,
                 label: "Expenses",
-                amount: "\$1,820.00",
+                amount: "₹1,820.00",
               ),
             ],
           ),

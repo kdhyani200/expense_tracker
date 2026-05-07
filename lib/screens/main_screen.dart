@@ -1,8 +1,8 @@
-import 'package:expense_tracker/screens/add_screen.dart';
-import 'package:expense_tracker/screens/home_screen.dart';
-import 'package:expense_tracker/screens/profile_screen.dart';
-import 'package:expense_tracker/screens/statistics_screen.dart';
-import 'package:expense_tracker/screens/wallet_screen.dart';
+import 'package:expense_tracker/screens/add/add_screen.dart';
+import 'package:expense_tracker/screens/home/home_screen.dart';
+import 'package:expense_tracker/screens/profile/profile_screen.dart';
+import 'package:expense_tracker/screens/stats/statistics_screen.dart';
+import 'package:expense_tracker/screens/wallet/wallet_screen.dart';
 import 'package:flutter/material.dart';
 
 class MainScreen extends StatefulWidget {

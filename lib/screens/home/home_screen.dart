@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../models/transactions.dart';
-import '../widget/main_card.dart';
-import '../widget/main_transaction_card.dart';
+import '../../models/transactions_card_model.dart';
+import '../../widget/main_card.dart';
+import '../../widget/main_transaction_card.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

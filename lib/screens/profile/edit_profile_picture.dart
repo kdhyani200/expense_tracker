@@ -12,7 +12,7 @@ class AddProfilePictureScreen extends StatefulWidget {
   });
 
   final void Function(File? image) onPickImage;
-  final File? initialImage; //
+  final File? initialImage;
   final String firstName;
   final String lastName;
 
