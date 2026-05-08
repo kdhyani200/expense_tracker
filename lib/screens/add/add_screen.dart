@@ -26,8 +26,10 @@ class _AddScreenState extends ConsumerState<AddScreen> {
 
   final List<String> _types = ['Expense', 'Income'];
 
+  // Categories with first letter capitalized for UI
   List<String> get _categories => ExpenseCategory.values.map((c) {
     final name = c.toString().split('.').last;
+    if (name.isEmpty) return name;
     return name[0].toUpperCase() + name.substring(1).toLowerCase();
   }).toList();
 
@@ -107,7 +109,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                           // TYPE DROPDOWN
                           _buildFieldLabel("Type", false, labelStyle),
                           DropdownButtonFormField<String>(
-                            initialValue: _selectedType,
+                            value: _selectedType,
                             isExpanded: true,
                             decoration: _buildInputDecoration("Select Type"),
                             items: _types
@@ -121,8 +123,9 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                             onChanged: (val) {
                               setState(() {
                                 _selectedType = val!;
-                                if (_selectedType == 'Income')
+                                if (_selectedType == 'Income') {
                                   _selectedCategory = null;
+                                }
                               });
                             },
                           ),
@@ -132,7 +135,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                           // WALLET DROPDOWN
                           _buildFieldLabel("Wallet", false, labelStyle),
                           DropdownButtonFormField<String>(
-                            initialValue: _selectedWallet,
+                            value: _selectedWallet,
                             isExpanded: true,
                             decoration: _buildInputDecoration("Select Wallet"),
                             items: walletNames
@@ -154,7 +157,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                             const SizedBox(height: 20),
                             _buildFieldLabel("Category", false, labelStyle),
                             DropdownButtonFormField<String>(
-                              initialValue: _selectedCategory,
+                              value: _selectedCategory,
                               isExpanded: true,
                               decoration: _buildInputDecoration(
                                 "Select Category",
@@ -259,9 +262,22 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                               _amountController.text,
                             );
 
-                            final selectedWalletData = wallets.firstWhere(
-                              (w) => w.name == _selectedWallet,
-                            );
+                            final selectedWalletData = wallets
+                                .cast<dynamic>()
+                                .firstWhere(
+                                  (w) => w.name == _selectedWallet,
+                                  orElse: () => null,
+                                );
+
+                            if (selectedWalletData == null) {
+                              SnackBarUtils.showSnackBar(
+                                context,
+                                "Wallet not found!",
+                                isError: true,
+                              );
+                              return;
+                            }
+
                             final currentBalance = double.parse(
                               selectedWalletData.amount,
                             );
@@ -270,7 +286,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                                 currentBalance < enteredAmount) {
                               SnackBarUtils.showSnackBar(
                                 context,
-                                "Insufficient funds!",
+                                "Insufficient funds in $_selectedWallet!",
                                 isError: true,
                               );
                               return;
@@ -280,8 +296,13 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                                 ? ExpenseCategory.other
                                 : ExpenseCategory.values.firstWhere(
                                     (c) =>
-                                        c.toString().split('.').last ==
-                                        _selectedCategory,
+                                        c
+                                            .toString()
+                                            .split('.')
+                                            .last
+                                            .toLowerCase() ==
+                                        _selectedCategory?.toLowerCase(),
+                                    orElse: () => ExpenseCategory.other,
                                   );
 
                             final newTransaction = Transaction(
