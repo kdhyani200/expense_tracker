@@ -1,4 +1,5 @@
 import 'package:expense_tracker/screens/add/add_screen.dart';
+import 'package:expense_tracker/screens/budget/budget_screen.dart';
 import 'package:expense_tracker/screens/home/home_screen.dart';
 import 'package:expense_tracker/screens/profile/profile_screen.dart';
 import 'package:expense_tracker/screens/stats/statistics_screen.dart';
@@ -15,34 +16,19 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  final int _addTransactionIndex = 2;
-
-  void _openAddTransactionScreen() {
-    showModalBottomSheet(
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      context: context,
-      builder: (ctx) => const AddScreen(),
-    );
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   final List<Widget> _pages = [
     const HomeScreen(),
     const StatisticsScreen(),
-    const SizedBox(),
+    const BudgetScreen(),
     const WalletScreen(),
     const ProfileScreen(),
   ];
-
-  void _onItemTapped(int index) {
-    if (index == _addTransactionIndex) {
-      _openAddTransactionScreen();
-    } else {
-      setState(() {
-        _selectedIndex = index;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,10 +49,7 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(Icons.bar_chart_rounded),
             label: 'Stats',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_box_rounded),
-            label: 'Add',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.calculate), label: 'Add'),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_balance_wallet_rounded),
             label: 'Wallet',

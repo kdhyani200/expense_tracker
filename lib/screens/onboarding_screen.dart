@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'auth.dart';
+import '../setup_profile.dart';
 
 class OnBoarding extends StatelessWidget {
   const OnBoarding({super.key});
@@ -135,20 +135,12 @@ class OnBoarding extends StatelessWidget {
                           backgroundColor: const Color(0xFF00885d),
                         ),
                         onPressed: () {
-                          Navigator.of(context).pushAndRemoveUntil(
+                          Navigator.pushReplacement(
+                            context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  const AuthenticationScreen(),
+                              builder: (context) => const SetupProfileScreen(),
                             ),
-                            (route) => false,
                           );
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (context) =>
-                          //         const AuthenticationScreen(),
-                          //   ),
-                          // );
                         },
                         child: const Text(
                           "Get Started",

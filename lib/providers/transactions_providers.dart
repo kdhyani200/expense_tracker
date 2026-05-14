@@ -1,65 +1,52 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/transaction_item.dart';
+import '../models/transaction_model.dart';
+import '../services/transaction_service.dart';
 
-class TransactionsNotifier extends Notifier<List<Transaction>> {
+class TransactionsNotifier extends Notifier<List<TransactionModel>> {
+  final TransactionService _transactionService = TransactionService();
+
   @override
-  List<Transaction> build() {
-    return [
-      // Transaction(
-      //   type: Type.Expense,
-      //   wallet: 'Cash',
-      //   category: ExpenseCategory.food,
-      //   date: DateTime.now().subtract(const Duration(days: 1)),
-      //   amount: '150',
-      //   description: 'Lunch with friends',
-      // ),
-      // Transaction(
-      //   type: Type.Income,
-      //   wallet: 'Bank Account',
-      //   category: ExpenseCategory.other,
-      //   date: DateTime.now(),
-      //   amount: '5000',
-      //   description: 'Monthly Salary',
-      // ),
-      // Transaction(
-      //   type: Type.Expense,
-      //   wallet: 'Credit Card',
-      //   category: ExpenseCategory.shopping,
-      //   date: DateTime.now(),
-      //   amount: '1200',
-      //   description: 'New Sneakers',
-      // ),
-    ];
+  List<TransactionModel> build() {
+    return _transactionService.getTransactions();
   }
 
-  double get totalIncome => _sumByType(Type.Income, state);
-  double get totalExpenses => _sumByType(Type.Expense, state);
+  void loadTransactions() {
+    state = _transactionService.getTransactions();
+  }
 
-  double _sumByType(Type type, List<Transaction> list) {
+  /// Computes total income from the current state list.
+  /// NOTE: Consumers should watch [transactionsProvider] (the state list) and
+  /// compute these values themselves for reactivity, rather than calling
+  /// getters on the notifier (which does not register a dependency).
+  double get totalIncome => _sumByType(TransactionType.income, state);
+
+  double get totalExpenses => _sumByType(TransactionType.expense, state);
+
+  double _sumByType(TransactionType type, List<TransactionModel> list) {
     return list
         .where((t) => t.type == type)
-        .fold(0.0, (sum, t) => sum + double.parse(t.amount));
+        .fold(0.0, (sum, t) => sum + t.amount);
   }
 
-  void addTransaction(Transaction transaction) {
-    state = [transaction, ...state];
+  Future<void> addTransaction(TransactionModel transaction) async {
+    await _transactionService.addTransaction(transaction);
+    loadTransactions();
   }
 
-  void deleteTransaction(String id) {
-    state = state.where((t) => t.id != id).toList();
+  Future<void> updateTransaction(TransactionModel transaction) async {
+    await _transactionService.updateTransaction(transaction);
+    loadTransactions();
   }
 
-  // // Update a transaction
-  // void updateTransaction(Transaction updatedTransaction) {
-  //   state = [
-  //     for (final t in state)
-  //       if (t.id == updatedTransaction.id) updatedTransaction else t,
-  //   ];
-  // }
+  Future<void> deleteTransaction(String id) async {
+    await _transactionService.deleteTransaction(id);
+    // Optimistic local state update (avoids a full reload)
+    state = state.where((tx) => tx.id != id).toList();
+  }
 }
 
 final transactionsProvider =
-    NotifierProvider<TransactionsNotifier, List<Transaction>>(() {
-      return TransactionsNotifier();
-    });
+    NotifierProvider<TransactionsNotifier, List<TransactionModel>>(
+      TransactionsNotifier.new,
+    );

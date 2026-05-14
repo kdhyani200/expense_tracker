@@ -1,29 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../models/transaction_model.dart';
 import '../providers/transactions_providers.dart';
 import '../providers/wallet_providers.dart';
 
-class MainCard extends ConsumerStatefulWidget {
+class MainCard extends ConsumerWidget {
   const MainCard({super.key});
 
   @override
-  ConsumerState<MainCard> createState() => _MainCardState();
-}
-
-class _MainCardState extends ConsumerState<MainCard> {
-  @override
-  Widget build(BuildContext context) {
-    final transactionLogic = ref.watch(transactionsProvider.notifier);
-    final overallIncome = transactionLogic.totalIncome;
-    final overExpense = transactionLogic.totalExpenses;
+  Widget build(BuildContext context, WidgetRef ref) {
+    // BUG FIX: watch transactionsProvider (the state list) instead of accessing
+    // .notifier getters directly.  Accessing getters on the notifier doesn't
+    // register a dependency, so the card would not rebuild when transactions
+    // changed.  By watching the state list and computing totals from it the
+    // widget correctly rebuilds on every change.
+    final transactions = ref.watch(transactionsProvider);
     final allWallets = ref.watch(walletsProvider);
-    double total = allWallets.fold(
-      0,
-      (sum, item) => sum + double.parse(item.amount),
-    );
+
+    final double overallIncome = transactions
+        .where((t) => t.type == TransactionType.income)
+        .fold(0.0, (sum, t) => sum + t.amount);
+
+    final double overExpense = transactions
+        .where((t) => t.type == TransactionType.expense)
+        .fold(0.0, (sum, t) => sum + t.amount);
+
+    final double total = allWallets.fold(0.0, (sum, w) => sum + w.balance);
+
+    // BUG FIX: format amounts with commas and 2 decimal places instead of
+    // showing raw double (e.g. "1000.0" → "1,000.00").
+    final fmt = NumberFormat('#,##0.00', 'en_IN');
 
     final media = MediaQuery.of(context);
+
     return Container(
       width: double.infinity,
       height: media.size.height * 0.28,
@@ -54,7 +65,7 @@ class _MainCardState extends ConsumerState<MainCard> {
           ),
           const SizedBox(height: 8),
           Text(
-            "₹${total}",
+            "₹${fmt.format(total)}",
             style: const TextStyle(
               color: Colors.white,
               fontSize: 32,
@@ -70,12 +81,12 @@ class _MainCardState extends ConsumerState<MainCard> {
               _buildBalanceDetail(
                 icon: Icons.arrow_downward,
                 label: "Income",
-                amount: "₹$overallIncome",
+                amount: "₹${fmt.format(overallIncome)}",
               ),
               _buildBalanceDetail(
                 icon: Icons.arrow_upward,
                 label: "Expense",
-                amount: "₹$overExpense",
+                amount: "₹${fmt.format(overExpense)}",
               ),
             ],
           ),

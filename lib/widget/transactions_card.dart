@@ -1,70 +1,67 @@
-import 'package:expense_tracker/models/transaction_item.dart';
-import 'package:expense_tracker/providers/transactions_providers.dart';
-import 'package:expense_tracker/providers/wallet_providers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../snackbar_util.dart';
 
-class TransactionItemCard extends ConsumerStatefulWidget {
-  final Transaction transaction;
+import '../models/transaction_model.dart';
+import '../screens/add/add_screen.dart';
+
+// ── Category metadata ─────────────────────────────────────────────────────────
+
+class _CategoryStyle {
+  final IconData icon;
+  final Color color;
+  const _CategoryStyle(this.icon, this.color);
+}
+
+const Map<String, _CategoryStyle> _categoryStyles = {
+  'food': _CategoryStyle(Icons.restaurant, Color(0xFF4CAF50)),
+  'travel': _CategoryStyle(Icons.flight_takeoff, Color(0xFF2196F3)),
+  'transport': _CategoryStyle(Icons.directions_bus, Color(0xFF2196F3)),
+  'shopping': _CategoryStyle(Icons.shopping_bag, Color(0xFFFF9800)),
+  'bills': _CategoryStyle(Icons.receipt_long, Color(0xFF9C27B0)),
+  'entertainment': _CategoryStyle(Icons.movie, Color(0xFFE91E63)),
+  'health': _CategoryStyle(Icons.medical_services, Color(0xFFF44336)),
+  'clothing': _CategoryStyle(Icons.checkroom, Color(0xFF00BCD4)),
+  'education': _CategoryStyle(Icons.school, Color(0xFF3F51B5)),
+  'other': _CategoryStyle(Icons.miscellaneous_services, Color(0xFF607D8B)),
+};
+
+const _fallbackExpense = _CategoryStyle(Icons.payments, Color(0xFF607D8B));
+const _incomeStyle = _CategoryStyle(Icons.monetization_on, Color(0xFF00885d));
+
+_CategoryStyle _styleFor(TransactionModel tx) {
+  if (tx.type == TransactionType.income) return _incomeStyle;
+  return _categoryStyles[tx.category.toLowerCase()] ?? _fallbackExpense;
+}
+
+// ── Card ──────────────────────────────────────────────────────────────────────
+
+class TransactionItemCard extends StatelessWidget {
+  final TransactionModel transaction;
 
   const TransactionItemCard({super.key, required this.transaction});
 
   @override
-  ConsumerState<TransactionItemCard> createState() =>
-      _TransactionItemCardState();
-}
-
-class _TransactionItemCardState extends ConsumerState<TransactionItemCard> {
-  @override
   Widget build(BuildContext context) {
-    final bool isIncome = widget.transaction.type == Type.Income;
-    final Color categoryColor = widget.transaction.category.color;
-    final IconData categoryIcon = widget.transaction.category.icon;
+    final isIncome = transaction.type == TransactionType.income;
+    final style = _styleFor(transaction);
+    final fmt = NumberFormat('#,##0.00', 'en_IN');
 
-    return Dismissible(
-      key: Key(widget.transaction.id),
-      direction: DismissDirection.endToStart,
-      onDismissed: (direction) {
-        final reverseType = isIncome ? Type.Expense : Type.Income;
-
-        ref
-            .read(walletsProvider.notifier)
-            .updateWalletBalance(
-              widget.transaction.wallet,
-              widget.transaction.amount,
-              reverseType,
-            );
-
-        ref
-            .read(transactionsProvider.notifier)
-            .deleteTransaction(widget.transaction.id);
-
-        SnackBarUtils.showSnackBar(
-          context,
-          "Transaction deleted and balance adjusted",
-        );
-      },
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.redAccent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: const Icon(Icons.delete, color: Colors.white),
+    return GestureDetector(
+      onTap: () => showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.transparent,
+        isScrollControlled: true,
+        builder: (_) => AddScreen(existing: transaction),
       ),
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -72,38 +69,34 @@ class _TransactionItemCardState extends ConsumerState<TransactionItemCard> {
         ),
         child: Row(
           children: [
+            // ── Icon badge ──────────────────────────────────────────────
             Container(
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: isIncome
-                    ? const Color(0xFF00885d).withOpacity(0.1)
-                    : categoryColor.withOpacity(0.1),
+                color: style.color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: isIncome
-                  ? const Icon(
-                      Icons.monetization_on,
-                      color: Color(0xFF00885d),
-                      size: 26,
-                    )
-                  : Icon(categoryIcon, color: categoryColor, size: 26),
+              child: Icon(style.icon, color: style.color, size: 24),
             ),
+
             const SizedBox(width: 16),
+
+            // ── Category + note ─────────────────────────────────────────
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isIncome ? "Income" : widget.transaction.category.name,
+                    transaction.category,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  if (widget.transaction.description != null)
+                  if (transaction.note.isNotEmpty)
                     Text(
-                      widget.transaction.description!,
+                      transaction.note,
                       style: TextStyle(
                         color: Colors.grey.shade500,
                         fontSize: 12,
@@ -114,22 +107,32 @@ class _TransactionItemCardState extends ConsumerState<TransactionItemCard> {
                 ],
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+
+            // ── Amount + date + chevron ─────────────────────────────────
+            Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  "${isIncome ? '+ ' : '- '}₹${widget.transaction.amount}",
-                  style: TextStyle(
-                    color: isIncome
-                        ? const Color(0xFF00885d)
-                        : Colors.redAccent,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                Text(
-                  DateFormat('d MMM').format(widget.transaction.date),
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      "${isIncome ? '+' : '-'} ₹${fmt.format(transaction.amount)}",
+                      style: TextStyle(
+                        color: isIncome
+                            ? const Color(0xFF00885d)
+                            : Colors.redAccent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    Text(
+                      DateFormat('d MMM').format(transaction.date),
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

@@ -1,54 +1,31 @@
-import 'package:expense_tracker/screens/wallet/add_wallet.dart';
-import 'package:expense_tracker/screens/wallet/update_wallet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/wallet.dart';
+import 'package:intl/intl.dart';
+
+import '../../models/wallet_model.dart';
 import '../../providers/wallet_providers.dart';
 import '../../widget/wallet_card.dart';
+import 'add_edit_wallet_screen.dart';
 
-class WalletScreen extends ConsumerStatefulWidget {
+class WalletScreen extends ConsumerWidget {
   const WalletScreen({super.key});
 
-  @override
-  ConsumerState<WalletScreen> createState() => _WalletScreenState();
-}
-
-class _WalletScreenState extends ConsumerState<WalletScreen> {
-  void _openUpdateWallet(BuildContext context, Wallet wallet, int index) {
+  void _openSheet(BuildContext context, {WalletModel? wallet}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => UpdateWalletScreen(
-        wallet: wallet,
-        onDelete: () => ref.read(walletsProvider.notifier).deleteWallet(index),
-        onUpdate: (name, image) =>
-            ref.read(walletsProvider.notifier).updateWallet(index, name, image),
-      ),
-    );
-  }
-
-  void _openAddWallet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => AddWalletScreen(
-        onAdd: (name, image) =>
-            ref.read(walletsProvider.notifier).addWallet(name, image),
-      ),
+      builder: (_) => AddEditWalletScreen(wallet: wallet),
     );
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final allWallets = ref.watch(walletsProvider);
     final screenHeight = MediaQuery.of(context).size.height;
+    final fmt = NumberFormat('#,##0.00', 'en_IN');
 
-    double total = allWallets.fold(
-      0,
-      (sum, item) => sum + double.parse(item.amount),
-    );
+    final double total = allWallets.fold(0.0, (sum, w) => sum + w.balance);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -56,12 +33,13 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
         child: Column(
           children: [
             SizedBox(height: screenHeight * 0.08),
-            // Dynamic Total Balance Section
+
+            // ── Total balance header ──────────────────────────────────
             Center(
               child: Column(
                 children: [
                   Text(
-                    "₹${total.toStringAsFixed(2)}",
+                    "₹${fmt.format(total)}",
                     style: const TextStyle(
                       fontSize: 40,
                       fontWeight: FontWeight.bold,
@@ -78,6 +56,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
 
             SizedBox(height: screenHeight * 0.075),
 
+            // ── Wallet list ───────────────────────────────────────────
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -102,19 +81,21 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                           ),
                         ),
                         IconButton(
-                          onPressed: () => _openAddWallet(),
+                          onPressed: () => _openSheet(context),
                           icon: const Icon(
-                            Icons.add_circle,
+                            Icons.add,
                             color: Color(0xFF00885d),
                             size: 30,
                           ),
                         ),
                       ],
                     ),
+
                     const SizedBox(height: 10),
+
                     Expanded(
                       child: allWallets.isEmpty
-                          ? _buildEmptyState(context)
+                          ? _buildEmptyState()
                           : ListView.builder(
                               itemCount: allWallets.length,
                               itemBuilder: (context, index) {
@@ -122,7 +103,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                                 return WalletCard(
                                   wallet: wallet,
                                   onTap: () =>
-                                      _openUpdateWallet(context, wallet, index),
+                                      _openSheet(context, wallet: wallet),
                                 );
                               },
                             ),
@@ -136,31 +117,35 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
       ),
     );
   }
-}
 
-Widget _buildEmptyState(BuildContext context) {
-  return Center(
-    child: Padding(
-      padding: const EdgeInsets.only(top: 40.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.hourglass_empty, size: 80, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
-          Text(
-            "No wallets",
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey.shade500,
-              fontWeight: FontWeight.w500,
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.account_balance_wallet_outlined,
+              size: 80,
+              color: Colors.grey.shade300,
             ),
-          ),
-          Text(
-            "Add your first wallet to see it here.",
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-          ),
-        ],
+            const SizedBox(height: 16),
+            Text(
+              "No wallets yet",
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade500,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              "Tap + to add your first wallet.",
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
