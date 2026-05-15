@@ -55,22 +55,22 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/app_logo.png"
+  image_path: "assets/expense_light_logo.png"
 
 flutter_native_splash:
   color: "#ffffff"
-  image: assets/expense_light_logo.png
+  image: assets/light_splash.png
 
   color_dark: "#121212"
-  image_dark: assets/dark_logo1.png
+  image_dark: assets/light_splash.png
 
   fullscreen: false
 
   android_12:
-    image: assets/expense_light_logo.png
+    image: assets/light_splash.png
     icon_background_color: "#ffffff"
 
-    image_dark: assets/dark_logo1.png
+    image_dark: assets/light_splash.png
     icon_background_color_dark: "#121212"
 
     fullscreen: false
@@ -79,15 +79,6 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/png1.png
-    - assets/png2.png
-    - assets/png3.png
-    - assets/png4.png
-    - assets/png5.png
-    - assets/light_logo.png
-    - assets/light_logo1.png
-    - assets/dark_logo.png
-    - assets/dark_logo1.png
     - assets/onboard_image.png
     - assets/expense_light_logo.png
-    - assets/app_logo.png
+    - assets/light_splash.png

@@ -7,6 +7,7 @@ import '../../providers/user_profile.dart';
 import '../../widget/main_card.dart';
 import '../../widget/transactions_card.dart';
 import '../add/add_screen.dart';
+import '../search/search_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -206,8 +207,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         backgroundColor: Colors.grey[100],
 
         child: IconButton(
-          onPressed: () {},
-
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SearchScreen()),
+            );
+          },
           icon: const Icon(Icons.search, color: Colors.black87),
         ),
       ),
