@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../models/transaction_model.dart';
+import '../providers/category_provider.dart';
 import '../utils/category_styles.dart';
 import '../screens/add/add_screen.dart';
 
-// ── Card ──────────────────────────────────────────────────────────────────────
-
-class TransactionItemCard extends StatelessWidget {
+class TransactionItemCard extends ConsumerWidget {
   final TransactionModel transaction;
-
   const TransactionItemCard({super.key, required this.transaction});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final customCats = ref.watch(categoryProvider);
     final isIncome = transaction.type == TransactionType.income;
-    final style = styleForTransaction(transaction);
+    final style = styleForTransaction(transaction, customCats);
     final fmt = NumberFormat('#,##0.00', 'en_IN');
 
     return GestureDetector(
@@ -33,7 +33,7 @@ class TransactionItemCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -41,20 +41,16 @@ class TransactionItemCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // ── Icon badge ──────────────────────────────────────────────
             Container(
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: style.color.withOpacity(0.12),
+                color: style.color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(15),
               ),
               child: Icon(style.icon, color: style.color, size: 24),
             ),
-
             const SizedBox(width: 16),
-
-            // ── Category + note ─────────────────────────────────────────
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,8 +75,6 @@ class TransactionItemCard extends StatelessWidget {
                 ],
               ),
             ),
-
-            // ── Amount + date + chevron ─────────────────────────────────
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -98,7 +92,7 @@ class TransactionItemCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      DateFormat('d MMM yyyy').format(transaction.date),
+                      _formatDate(transaction.date),
                       style: TextStyle(
                         color: Colors.grey.shade500,
                         fontSize: 11,
@@ -106,17 +100,29 @@ class TransactionItemCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(width: 6),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: Colors.grey.shade400,
-                  size: 20,
-                ),
               ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  String _formatDate(DateTime d) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${d.day} ${months[d.month - 1]} ${d.year}';
   }
 }

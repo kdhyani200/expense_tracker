@@ -7,8 +7,6 @@ import '../../utils/category_styles.dart';
 import '../../providers/transactions_providers.dart';
 import '../add/add_screen.dart';
 
-// ── Screen ────────────────────────────────────────────────────────────────────
-
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
 
@@ -119,7 +117,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
             // ── Result count ────────────────────────────────────────────
             if (_query.isNotEmpty)

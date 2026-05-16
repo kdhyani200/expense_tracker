@@ -54,6 +54,7 @@ class ProfileScreen extends ConsumerWidget {
           "Profile",
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
         ),
+        centerTitle: true,
       ),
 
       body: SingleChildScrollView(
@@ -130,9 +131,9 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 10),
 
             const ProfileItemCard(
-              icon: Icons.logout_rounded,
+              icon: Icons.note_rounded,
               color: Colors.redAccent,
-              label: 'Logout',
+              label: 'Privacy Policy',
             ),
           ],
         ),

@@ -36,6 +36,7 @@ dependencies:
 
   # Utilities
   uuid: ^4.5.3
+  fl_chart: ^1.2.0
 
 
 dev_dependencies:
@@ -79,6 +80,6 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/onboard_image.png
+    - assets/onboard_image.webp
     - assets/expense_light_logo.png
     - assets/light_splash.png

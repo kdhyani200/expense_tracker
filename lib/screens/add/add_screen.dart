@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../models/transaction_model.dart';
 import '../../providers/transactions_providers.dart';
+import '../../providers/category_provider.dart';
 import '../../providers/wallet_providers.dart';
 import '../../snackbar_util.dart';
 
@@ -33,17 +34,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
 
   final List<String> _types = ['Expense', 'Income'];
 
-  final List<String> _categories = [
-    'Food',
-    'Shopping',
-    'Transport',
-    'Bills',
-    'Entertainment',
-    'Health',
-    'Education',
-    'Travel',
-    'Other',
-  ];
+  // Categories loaded from categoryProvider
 
   @override
   void initState() {
@@ -54,9 +45,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
       // ── Edit mode: pre-fill from existing transaction ─────────────────────
       _selectedType = tx.type == TransactionType.income ? 'Income' : 'Expense';
       _selectedWalletId = tx.walletId;
-      _selectedCategory = tx.type == TransactionType.expense
-          ? tx.category
-          : null;
+      _selectedCategory = tx.category;
       _dateController = TextEditingController(
         text: DateFormat('dd/MM/yyyy').format(tx.date),
       );
@@ -222,9 +211,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                               if (val == null) return;
                               setState(() {
                                 _selectedType = val;
-                                if (val == 'Income') {
-                                  _selectedCategory = null;
-                                }
+                                _selectedCategory = null;
                               });
                             },
                           ),
@@ -253,29 +240,34 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                                 val == null ? "Please select a wallet" : null,
                           ),
 
-                          // Category (expense only)
-                          if (_selectedType == 'Expense') ...[
-                            const SizedBox(height: 20),
-                            _buildFieldLabel("Category", false, labelStyle),
-                            _buildDropdown<String>(
-                              value: _selectedCategory,
-                              hint: "Select Category",
-                              items: _categories
-                                  .map(
-                                    (c) => DropdownMenuItem(
-                                      value: c,
-                                      child: Text(c),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (val) =>
-                                  setState(() => _selectedCategory = val),
-                              validator: (val) =>
-                                  _selectedType == 'Expense' && val == null
-                                  ? "Select a category"
-                                  : null,
-                            ),
-                          ],
+                          // Category (income + expense)
+                          const SizedBox(height: 20),
+                          _buildFieldLabel("Category", false, labelStyle),
+                          Consumer(
+                            builder: (context, ref, _) {
+                              final cats = ref
+                                  .watch(categoryProvider.notifier)
+                                  .namesFor(_selectedType.toLowerCase());
+                              return _buildDropdown<String>(
+                                value: cats.contains(_selectedCategory)
+                                    ? _selectedCategory
+                                    : null,
+                                hint: "Select Category",
+                                items: cats
+                                    .map(
+                                      (c) => DropdownMenuItem(
+                                        value: c,
+                                        child: Text(c),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (val) =>
+                                    setState(() => _selectedCategory = val),
+                                validator: (val) =>
+                                    val == null ? "Select a category" : null,
+                              );
+                            },
+                          ),
 
                           const SizedBox(height: 20),
 
@@ -388,7 +380,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
           elevation: 0,
         ),
         child: const Text(
-          "Submit",
+          "Add",
           style: TextStyle(
             color: Colors.white,
             fontSize: 16,
@@ -402,49 +394,59 @@ class _AddScreenState extends ConsumerState<AddScreen> {
   Widget _buildEditButtons() {
     return Row(
       children: [
-        Container(
-          height: 55,
-          width: 55,
-
-          decoration: BoxDecoration(
-            color: const Color(0xFFFF5252),
-
-            borderRadius: BorderRadius.circular(12),
-          ),
-
-          child: IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.white),
-
-            onPressed: _confirmDelete,
+        // Delete button
+        Expanded(
+          child: SizedBox(
+            height: 55,
+            child: OutlinedButton.icon(
+              onPressed: _confirmDelete,
+              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              label: const Text(
+                "Delete",
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.redAccent, width: 1.2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
           ),
         ),
 
         const SizedBox(width: 12),
 
+        // Update button
         Expanded(
+          flex: 2,
           child: SizedBox(
             height: 55,
-
-            child: ElevatedButton(
+            child: ElevatedButton.icon(
               onPressed: _updateTransaction,
-
+              icon: const Icon(
+                Icons.check_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              label: const Text(
+                "Update",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF00885d),
-
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-
                 elevation: 0,
-              ),
-
-              child: const Text(
-                "Update",
-
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
               ),
             ),
           ),
@@ -503,13 +505,10 @@ class _AddScreenState extends ConsumerState<AddScreen> {
     final transaction = TransactionModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       walletId: selectedWallet.id,
-      title: _selectedType == 'Income'
-          ? 'Income'
-          : _selectedCategory ?? 'Other',
       amount: amount,
-      category: _selectedType == 'Income'
-          ? 'Income'
-          : _selectedCategory ?? 'Other',
+      title: _selectedCategory ?? 'Other',
+
+      category: _selectedCategory ?? 'Other',
       type: transactionType,
       date: parsedDate,
       note: _descriptionController.text.trim(),
@@ -626,13 +625,10 @@ class _AddScreenState extends ConsumerState<AddScreen> {
     final updated = TransactionModel(
       id: old.id, // keep same id so Hive overwrites
       walletId: selectedWallet.id,
-      title: _selectedType == 'Income'
-          ? 'Income'
-          : _selectedCategory ?? 'Other',
       amount: newAmount,
-      category: _selectedType == 'Income'
-          ? 'Income'
-          : _selectedCategory ?? 'Other',
+      title: _selectedCategory ?? 'Other',
+
+      category: _selectedCategory ?? 'Other',
       type: newType,
       date: parsedDate,
       note: _descriptionController.text.trim(),

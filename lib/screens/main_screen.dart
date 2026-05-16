@@ -1,5 +1,3 @@
-import 'package:expense_tracker/screens/add/add_screen.dart';
-import 'package:expense_tracker/screens/budget/budget_screen.dart';
 import 'package:expense_tracker/screens/home/home_screen.dart';
 import 'package:expense_tracker/screens/profile/profile_screen.dart';
 import 'package:expense_tracker/screens/stats/statistics_screen.dart';
@@ -25,7 +23,6 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _pages = [
     const HomeScreen(),
     const StatisticsScreen(),
-    const BudgetScreen(),
     const WalletScreen(),
     const ProfileScreen(),
   ];
@@ -49,7 +46,6 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(Icons.bar_chart_rounded),
             label: 'Stats',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.calculate), label: 'Add'),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_balance_wallet_rounded),
             label: 'Wallet',
