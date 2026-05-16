@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -32,7 +33,12 @@ void main() async {
   final userBox = Hive.box<UserModel>('user');
   final bool isProfileSet = userBox.isNotEmpty;
 
-  runApp(ProviderScope(child: MyApp(isProfileSet: isProfileSet)));
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]).then((_) {
+    runApp(ProviderScope(child: MyApp(isProfileSet: isProfileSet)));
+  });
 }
 
 class MyApp extends StatelessWidget {

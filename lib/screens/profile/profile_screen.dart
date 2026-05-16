@@ -47,14 +47,24 @@ class ProfileScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.white,
 
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          "Profile",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(
+          MediaQuery.of(context).size.height * 0.05,
         ),
-        centerTitle: true,
+
+        child: AppBar(
+          toolbarHeight: MediaQuery.of(context).size.height * 0.05,
+
+          backgroundColor: Colors.white,
+          elevation: 0,
+
+          centerTitle: true,
+
+          title: const Text(
+            "Profile",
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          ),
+        ),
       ),
 
       body: SingleChildScrollView(
