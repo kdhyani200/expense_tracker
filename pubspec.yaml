@@ -59,8 +59,8 @@ flutter_launcher_icons:
   image_path: "assets/expense_light_logo.png"
 
 flutter_native_splash:
-  color: "#ffffff"
-  image: assets/light_splash.png
+  color: "#00885d"
+  image: assets/splash_logo.png
 
   color_dark: "#121212"
   image_dark: assets/light_splash.png
@@ -68,8 +68,9 @@ flutter_native_splash:
   fullscreen: false
 
   android_12:
-    image: assets/light_splash.png
-    icon_background_color: "#ffffff"
+    color: "#00885d"
+    image: assets/splash_logo.png
+    icon_background_color: "#00885d"
 
     image_dark: assets/light_splash.png
     icon_background_color_dark: "#121212"
@@ -83,3 +84,4 @@ flutter:
     - assets/onboard_image.webp
     - assets/expense_light_logo.png
     - assets/light_splash.png
+    - assets/splash_logo.png

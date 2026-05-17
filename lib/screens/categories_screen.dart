@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../image_helper.dart';
 import '../../models/category_model.dart';
 import '../../providers/category_provider.dart';
@@ -108,7 +107,7 @@ class CategoriesScreen extends ConsumerWidget {
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
-                          backgroundColor: Color(0xFF00885d),
+                          backgroundColor: const Color(0xFF00885d),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
@@ -190,38 +189,46 @@ class _CategoryGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 4,
+    return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 8,
-      childAspectRatio: 0.75,
-      children: [
-        for (final b in builtIns)
-          _CategoryChip(
+      itemCount: builtIns.length + customs.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        mainAxisSpacing: 20,
+        crossAxisSpacing: 14,
+        childAspectRatio: 0.62,
+      ),
+      itemBuilder: (context, index) {
+        if (index < builtIns.length) {
+          final b = builtIns[index];
+          return _CategoryChip(
             label: b.name,
             icon: b.icon,
             color: b.color,
             imagePath: null,
             isDeletable: false,
             onDelete: null,
-          ),
-        for (final c in customs)
-          _CategoryChip(
-            label: c.name,
-            icon: c.iconCodePoint == -1
-                ? null
-                : IconData(c.iconCodePoint, fontFamily: 'MaterialIcons'),
-            color: Color(c.colorValue),
-            imagePath: c.imagePath,
-            isDeletable: true,
-            onDelete: () => onDelete(c.id),
-          ),
-      ],
+          );
+        }
+        final c = customs[index - builtIns.length];
+        return _CategoryChip(
+          label: c.name,
+          icon: c.iconCodePoint == -1 ? null : _safeIcon(c.iconCodePoint),
+          color: Color(c.colorValue),
+          imagePath: c.imagePath,
+          isDeletable: true,
+          onDelete: () => onDelete(c.id),
+        );
+      },
     );
   }
 }
+
+IconData _safeIcon(int codePoint) => kCategoryIcons.firstWhere(
+  (e) => e.codePoint == codePoint,
+  orElse: () => Icons.label_outline,
+);
 
 class _CategoryChip extends StatelessWidget {
   final String label;
@@ -244,44 +251,54 @@ class _CategoryChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       clipBehavior: Clip.none,
+      alignment: Alignment.topCenter,
       children: [
         Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 58,
-              height: 58,
+              width: 60,
+              height: 60,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: color.withOpacity(0.25), width: 1),
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: color.withValues(alpha: 0.25),
+                  width: 1.2,
+                ),
               ),
               child: _buildIcon(),
             ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 11),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            const SizedBox(height: 10),
+            SizedBox(
+              width: 80,
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  height: 1.25,
+                ),
+              ),
             ),
           ],
         ),
         if (isDeletable)
           Positioned(
-            top: -4,
-            right: -4,
+            top: -5,
+            right: 8,
             child: GestureDetector(
               onTap: onDelete,
               child: Container(
-                width: 18,
-                height: 18,
+                width: 20,
+                height: 20,
                 decoration: const BoxDecoration(
                   color: Colors.redAccent,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.close, size: 11, color: Colors.white),
+                child: const Icon(Icons.close, size: 12, color: Colors.white),
               ),
             ),
           ),
@@ -292,11 +309,11 @@ class _CategoryChip extends StatelessWidget {
   Widget _buildIcon() {
     if (imagePath != null && File(imagePath!).existsSync()) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         child: Image.file(File(imagePath!), fit: BoxFit.cover),
       );
     }
-    return Icon(icon ?? Icons.label_outline, color: color, size: 26);
+    return Icon(icon ?? Icons.label_outline, color: color, size: 34);
   }
 }
 
@@ -316,6 +333,8 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
   IconData _selectedIcon = kCategoryIcons[0];
   Color _selectedColor = kCategoryColors[0];
   String? _galleryImagePath;
+
+  bool get _usingImage => _galleryImagePath != null;
 
   @override
   void dispose() {
@@ -350,13 +369,29 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
       CategoryModel(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: name,
-        iconCodePoint: _galleryImagePath != null ? -1 : _selectedIcon.codePoint,
+        iconCodePoint: _usingImage ? -1 : _selectedIcon.codePoint,
         colorValue: _selectedColor.value,
         type: _type,
         imagePath: _galleryImagePath,
       ),
     );
     Navigator.pop(context);
+  }
+
+  // ── Section label with optional "disabled" hint ──────────────────────────
+  Widget _sectionLabel(String text) {
+    return Row(
+      children: [
+        Text(text, style: const TextStyle(fontWeight: FontWeight.w600)),
+        if (_usingImage) ...[
+          const SizedBox(width: 8),
+          Text(
+            "(using image)",
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+          ),
+        ],
+      ],
+    );
   }
 
   @override
@@ -431,101 +466,116 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
               ),
               const SizedBox(height: 16),
 
-              // Color
-              const Text(
-                "Color",
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
+              // ── Color (disabled when image chosen) ───────────────────
+              _sectionLabel("Color"),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: kCategoryColors.map((c) {
-                  final sel = c.value == _selectedColor.value;
-                  return GestureDetector(
-                    onTap: () => setState(() => _selectedColor = c),
-                    child: Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color: c,
-                        shape: BoxShape.circle,
-                        border: sel
-                            ? Border.all(color: Colors.black, width: 2.5)
-                            : null,
-                        boxShadow: sel
-                            ? [
-                                BoxShadow(
-                                  color: c.withOpacity(0.5),
-                                  blurRadius: 6,
-                                ),
-                              ]
-                            : null,
-                      ),
-                      child: sel
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 16,
-                            )
-                          : null,
-                    ),
-                  );
-                }).toList(),
+              Opacity(
+                opacity: _usingImage ? 0.35 : 1.0,
+                child: AbsorbPointer(
+                  absorbing: _usingImage,
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: kCategoryColors.map((c) {
+                      final sel = c.value == _selectedColor.value;
+                      return GestureDetector(
+                        onTap: () => setState(() => _selectedColor = c),
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: c,
+                            shape: BoxShape.circle,
+                            border: sel
+                                ? Border.all(color: Colors.black, width: 2.5)
+                                : null,
+                            boxShadow: sel
+                                ? [
+                                    BoxShadow(
+                                      color: c.withOpacity(0.5),
+                                      blurRadius: 6,
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: sel
+                              ? const Icon(
+                                  Icons.check,
+                                  color: Colors.white,
+                                  size: 16,
+                                )
+                              : null,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
 
-              // Icon grid
-              const Text("Icon", style: TextStyle(fontWeight: FontWeight.w600)),
+              // ── Icon grid (disabled when image chosen) ───────────────
+              _sectionLabel("Icon"),
               const SizedBox(height: 8),
-              Container(
-                height: 180,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(8),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 6,
-                    mainAxisSpacing: 6,
-                    crossAxisSpacing: 6,
+              Opacity(
+                opacity: _usingImage ? 0.35 : 1.0,
+                child: AbsorbPointer(
+                  absorbing: _usingImage,
+                  child: Container(
+                    height: 180,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: GridView.builder(
+                      padding: const EdgeInsets.all(8),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 6,
+                            mainAxisSpacing: 6,
+                            crossAxisSpacing: 6,
+                          ),
+                      itemCount: kCategoryIcons.length,
+                      itemBuilder: (_, i) {
+                        final ic = kCategoryIcons[i];
+                        final sel =
+                            !_usingImage &&
+                            ic.codePoint == _selectedIcon.codePoint;
+                        return GestureDetector(
+                          onTap: () => setState(() {
+                            _selectedIcon = ic;
+                            _galleryImagePath = null;
+                          }),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: sel
+                                  ? _selectedColor.withOpacity(0.15)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                              border: sel
+                                  ? Border.all(
+                                      color: _selectedColor,
+                                      width: 1.5,
+                                    )
+                                  : null,
+                            ),
+                            child: Icon(
+                              ic,
+                              size: 22,
+                              color: sel
+                                  ? _selectedColor
+                                  : Colors.grey.shade600,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                  itemCount: kCategoryIcons.length,
-                  itemBuilder: (_, i) {
-                    final ic = kCategoryIcons[i];
-                    final sel =
-                        _galleryImagePath == null &&
-                        ic.codePoint == _selectedIcon.codePoint;
-                    return GestureDetector(
-                      onTap: () => setState(() {
-                        _selectedIcon = ic;
-                        _galleryImagePath = null;
-                      }),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: sel
-                              ? _selectedColor.withOpacity(0.15)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
-                          border: sel
-                              ? Border.all(color: _selectedColor, width: 1.5)
-                              : null,
-                        ),
-                        child: Icon(
-                          ic,
-                          size: 22,
-                          color: sel ? _selectedColor : Colors.grey.shade600,
-                        ),
-                      ),
-                    );
-                  },
                 ),
               ),
               const SizedBox(height: 12),
 
-              // Gallery
+              // ── Gallery row ──────────────────────────────────────────
               GestureDetector(
                 onTap: _pickFromGallery,
                 child: Container(
@@ -534,30 +584,52 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
                     vertical: 11,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
+                    color: _usingImage
+                        ? const Color(0xFF00885d).withOpacity(0.06)
+                        : Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.grey.shade300, width: .8),
+                    border: Border.all(
+                      color: _usingImage
+                          ? const Color(0xFF00885d).withOpacity(0.4)
+                          : Colors.grey.shade300,
+                      width: _usingImage ? 1.2 : .8,
+                    ),
                   ),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.photo_library_outlined,
-                        color: Colors.grey.shade600,
-                        size: 20,
-                      ),
+                      // Preview thumbnail when image is selected
+                      if (_usingImage)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.file(
+                            File(_galleryImagePath!),
+                            width: 32,
+                            height: 32,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      else
+                        Icon(
+                          Icons.photo_library_outlined,
+                          color: Colors.grey.shade600,
+                          size: 20,
+                        ),
                       const SizedBox(width: 10),
                       Text(
-                        _galleryImagePath != null
-                            ? "Image selected ✓"
+                        _usingImage
+                            ? "Image selected — tap to change"
                             : "Choose from gallery",
                         style: TextStyle(
-                          color: _galleryImagePath != null
+                          color: _usingImage
                               ? const Color(0xFF00885d)
                               : Colors.grey.shade600,
                           fontSize: 14,
+                          fontWeight: _usingImage
+                              ? FontWeight.w500
+                              : FontWeight.normal,
                         ),
                       ),
-                      if (_galleryImagePath != null) ...[
+                      if (_usingImage) ...[
                         const Spacer(),
                         GestureDetector(
                           onTap: () => setState(() => _galleryImagePath = null),

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -33,7 +35,7 @@ class TransactionItemCard extends ConsumerWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.1),
+              color: Colors.grey.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -41,16 +43,20 @@ class TransactionItemCard extends ConsumerWidget {
         ),
         child: Row(
           children: [
+            // ── Icon / image badge ──────────────────────────────────
             Container(
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: style.color.withValues(alpha: 0.12),
+                color: style.color.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: Icon(style.icon, color: style.color, size: 24),
+              child: _buildBadge(style),
             ),
+
             const SizedBox(width: 16),
+
+            // ── Category + note ─────────────────────────────────────
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,6 +81,8 @@ class TransactionItemCard extends ConsumerWidget {
                 ],
               ),
             ),
+
+            // ── Amount + date + chevron ─────────────────────────────
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -106,6 +114,18 @@ class TransactionItemCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Renders either a gallery image or an icon inside the badge.
+  Widget _buildBadge(CategoryStyle style) {
+    final path = style.imagePath;
+    if (path != null && File(path).existsSync()) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(15),
+        child: Image.file(File(path), fit: BoxFit.cover),
+      );
+    }
+    return Icon(style.icon, color: style.color, size: 24);
   }
 
   String _formatDate(DateTime d) {

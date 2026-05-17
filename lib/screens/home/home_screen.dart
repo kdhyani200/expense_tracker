@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +10,7 @@ import '../../widget/transactions_card.dart';
 import '../add/add_screen.dart';
 import '../categories_screen.dart';
 import '../search/search_screen.dart';
+import '../stats/statistics_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -96,6 +99,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget build(BuildContext context) {
     final transactions = ref.watch(transactionsProvider);
 
+    final recentTransactions = transactions.take(10).toList();
+    final hasMoreThan10 = transactions.length > 10;
+
     return GestureDetector(
       onTap: _closeFab,
       child: Scaffold(
@@ -174,20 +180,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
                 const Text(
                   "Recent Transactions",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
 
                 const SizedBox(height: 12),
 
                 transactions.isEmpty
                     ? _buildEmptyState(context)
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: transactions.length,
-                        itemBuilder: (context, index) => TransactionItemCard(
-                          transaction: transactions[index],
-                        ),
+                    : Column(
+                        children: [
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: recentTransactions.length,
+                            itemBuilder: (context, index) =>
+                                TransactionItemCard(
+                                  transaction: recentTransactions[index],
+                                ),
+                          ),
+
+                          if (hasMoreThan10) ...[
+                            const SizedBox(height: 8),
+
+                            Center(
+                              child: TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const StatisticsScreen(),
+                                    ),
+                                  );
+                                },
+                                child: const Text(
+                                  "View more transactions",
+                                  style: TextStyle(
+                                    color: Color(0xFF00885d),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
               ],
             ),
@@ -231,8 +267,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   Widget _buildUserHeader() {
     final user = ref.watch(userProfileProvider);
 
+    final hasImage = user?.imagePath != null && user!.imagePath!.isNotEmpty;
+
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
+        CircleAvatar(
+          radius: 22,
+          backgroundColor: const Color(0xFF00885d).withValues(alpha: 0.12),
+          backgroundImage: hasImage ? FileImage(File(user.imagePath!)) : null,
+          child: hasImage
+              ? null
+              : Text(
+                  user == null ||
+                          (user.firstName.trim().isEmpty &&
+                              user.lastName.trim().isEmpty)
+                      ? "U"
+                      : user.firstName.trim()[0].toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF00885d),
+                  ),
+                ),
+        ),
+
+        const SizedBox(width: 12),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
