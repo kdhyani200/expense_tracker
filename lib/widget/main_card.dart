@@ -40,15 +40,20 @@ class MainCard extends ConsumerWidget {
       height: media.size.height * 0.28,
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
-        color: const Color(0xFF10b981),
+        gradient: LinearGradient(
+          colors: [Color(0xFF00787a), Color(0xFF10b981)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        // color: const Color(0xFF10b981),
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF10b981).withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: const Color(0xFF10b981).withValues(alpha: 0.3),
+        //     blurRadius: 20,
+        //     offset: const Offset(0, 10),
+        //   ),
+        // ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -30,6 +30,7 @@ class _AddProfilePictureScreenState
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
   File? _selectedImage;
+  bool get isDarkMode => Theme.of(context).brightness == Brightness.dark;
 
   @override
   void initState() {
@@ -74,6 +75,8 @@ class _AddProfilePictureScreenState
   InputDecoration _buildInputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
+      filled: true,
+      fillColor: isDarkMode ? Color(0xFF1a222e) : Colors.white,
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: Colors.grey.shade400, width: .8),
@@ -192,8 +195,8 @@ class _AddProfilePictureScreenState
     return Padding(
       padding: EdgeInsets.only(top: screenHeight * 0.12),
       child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
           borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
         ),
         child: Scaffold(
@@ -202,11 +205,11 @@ class _AddProfilePictureScreenState
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            leading: const BackButton(color: Colors.black),
-            title: const Text(
+            leading: BackButton(color: Theme.of(context).primaryColor),
+            title: Text(
               "Update Profile",
               style: TextStyle(
-                color: Colors.black,
+                color: Theme.of(context).primaryColor,
                 fontWeight: FontWeight.bold,
               ),
             ),

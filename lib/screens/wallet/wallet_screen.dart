@@ -27,8 +27,10 @@ class WalletScreen extends ConsumerWidget {
 
     final double total = allWallets.fold(0.0, (sum, w) => sum + w.balance);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -40,10 +42,10 @@ class WalletScreen extends ConsumerWidget {
                 children: [
                   Text(
                     "₹${fmt.format(total)}",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 40,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: Theme.of(context).primaryColor,
                     ),
                   ),
                   Text(
@@ -62,7 +64,7 @@ class WalletScreen extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: Theme.of(context).canvasColor,
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(30),
                   ),
@@ -73,9 +75,10 @@ class WalletScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           "My Wallets",
                           style: TextStyle(
+                            color: Theme.of(context).primaryColor,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),

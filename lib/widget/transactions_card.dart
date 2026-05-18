@@ -31,11 +31,11 @@ class TransactionItemCard extends ConsumerWidget {
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).canvasColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Theme.of(context).shadowColor,
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -48,7 +48,7 @@ class TransactionItemCard extends ConsumerWidget {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: style.color.withOpacity(0.12),
+                color: style.color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(15),
               ),
               child: _buildBadge(style),

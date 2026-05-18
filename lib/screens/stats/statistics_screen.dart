@@ -18,13 +18,14 @@ class StatisticsScreen extends ConsumerStatefulWidget {
 
 class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
   StatsType _selected = StatsType.weekly;
+  bool get isDarkMode => Theme.of(context).brightness == Brightness.dark;
 
   @override
   Widget build(BuildContext context) {
     final transactions = ref.watch(transactionsProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F7),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(
@@ -32,12 +33,15 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
         ),
         child: AppBar(
           toolbarHeight: MediaQuery.of(context).size.height * 0.05,
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           elevation: 0,
           centerTitle: true,
-          title: const Text(
+          title: Text(
             "Statistics",
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: Theme.of(context).primaryColor,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
@@ -80,7 +84,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 8),
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).shadowColor,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -102,7 +106,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
           duration: const Duration(milliseconds: 250),
           padding: const EdgeInsets.symmetric(vertical: 7),
           decoration: BoxDecoration(
-            color: selected ? const Color(0xFF00885d) : Colors.transparent,
+            color: selected
+                ? const Color(0xFF01734f).withValues(alpha: .3)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
@@ -111,7 +117,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
-              color: selected ? Colors.white : Colors.black87,
+              color: selected
+                  ? Color(0xFF01734f)
+                  : Theme.of(context).primaryColor,
             ),
           ),
         ),
@@ -128,7 +136,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.only(top: 24, left: 12, right: 20, bottom: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode ? Color(0xFF0f172a) : Colors.white,
         borderRadius: BorderRadius.circular(30),
       ),
       child: SingleChildScrollView(
@@ -145,8 +153,10 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
               gridData: FlGridData(
                 drawVerticalLine: false,
                 horizontalInterval: maxValue / 5,
-                getDrawingHorizontalLine: (value) =>
-                    FlLine(color: Colors.grey.shade200, strokeWidth: 1),
+                getDrawingHorizontalLine: (value) => FlLine(
+                  color: Theme.of(context).dividerColor,
+                  strokeWidth: 1,
+                ),
               ),
               borderData: FlBorderData(show: false),
               titlesData: FlTitlesData(
@@ -185,10 +195,10 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
                         padding: const EdgeInsets.only(top: 10),
                         child: Text(
                           chartData[index].label,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black87,
+                            color: Theme.of(context).primaryColor,
                           ),
                         ),
                       );
@@ -261,7 +271,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
   List<_ChartData> _generateChartData(List<TransactionModel> transactions) {
     final now = DateTime.now();
 
-    // ── Weekly: today on left → 6 days ago on right ──────────────────────
+    // ── kly: today on left → 6 days ago on right ──────────────────────
     if (_selected == StatsType.weekly) {
       return List.generate(7, (index) {
         final date = now.subtract(Duration(days: index));

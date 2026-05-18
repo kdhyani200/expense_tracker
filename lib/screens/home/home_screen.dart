@@ -105,10 +105,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return GestureDetector(
       onTap: _closeFab,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           elevation: 0,
           title: _buildUserHeader(),
           actions: [_buildSearchIcon()],
@@ -307,9 +307,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           user.lastName.trim().isEmpty))
                   ? "User"
                   : "${user.firstName} ${user.lastName}".trim(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
-                color: Colors.black,
+                color: Theme.of(context).primaryColor,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -323,7 +323,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return Padding(
       padding: const EdgeInsets.only(right: 16.0),
       child: CircleAvatar(
-        backgroundColor: Colors.grey[100],
+        backgroundColor: Theme.of(context).canvasColor,
         child: IconButton(
           onPressed: () {
             Navigator.push(
@@ -331,7 +331,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               MaterialPageRoute(builder: (_) => const SearchScreen()),
             );
           },
-          icon: const Icon(Icons.search, color: Colors.black87),
+          icon: Icon(Icons.search, color: Theme.of(context).primaryColor),
         ),
       ),
     );

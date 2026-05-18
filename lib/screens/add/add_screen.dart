@@ -80,7 +80,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
       hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       filled: true,
-      fillColor: Colors.white,
+      fillColor: Theme.of(context).canvasColor,
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: Colors.grey.shade400, width: .8),
@@ -108,11 +108,11 @@ class _AddScreenState extends ConsumerState<AddScreen> {
     String? Function(T?)? validator,
   }) {
     return DropdownButtonFormField<T>(
-      value: value,
+      initialValue: value,
       isExpanded: true,
       alignment: AlignmentDirectional.bottomStart,
       menuMaxHeight: 260,
-      dropdownColor: Colors.white,
+      dropdownColor: Theme.of(context).canvasColor,
       borderRadius: BorderRadius.circular(12),
       icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey),
       decoration: _buildInputDecoration(hint),
@@ -152,17 +152,17 @@ class _AddScreenState extends ConsumerState<AddScreen> {
     final wallets = ref.watch(walletsProvider);
     final screenHeight = MediaQuery.of(context).size.height;
 
-    const labelStyle = TextStyle(
+    final labelStyle = TextStyle(
       fontSize: 16,
       fontWeight: FontWeight.w600,
-      color: Colors.black87,
+      color: Theme.of(context).primaryColor,
     );
 
     return Padding(
       padding: EdgeInsets.only(top: screenHeight * 0.12),
       child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
           borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
         ),
         child: Scaffold(
@@ -170,11 +170,11 @@ class _AddScreenState extends ConsumerState<AddScreen> {
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            leading: const BackButton(color: Colors.black),
+            leading: BackButton(color: Theme.of(context).primaryColor),
             title: Text(
               _isEditMode ? "Edit Transaction" : "Add Transaction",
-              style: const TextStyle(
-                color: Colors.black,
+              style: TextStyle(
+                color: Theme.of(context).primaryColor,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -203,7 +203,12 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                                 .map(
                                   (t) => DropdownMenuItem(
                                     value: t,
-                                    child: Text(t),
+                                    child: Text(
+                                      t,
+                                      style: TextStyle(
+                                        color: Theme.of(context).primaryColor,
+                                      ),
+                                    ),
                                   ),
                                 )
                                 .toList(),
@@ -230,6 +235,9 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                                     child: Text(
                                       w.name,
                                       overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: Theme.of(context).primaryColor,
+                                      ),
                                     ),
                                   ),
                                 )
@@ -257,7 +265,14 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                                     .map(
                                       (c) => DropdownMenuItem(
                                         value: c,
-                                        child: Text(c),
+                                        child: Text(
+                                          c,
+                                          style: TextStyle(
+                                            color: Theme.of(
+                                              context,
+                                            ).primaryColor,
+                                          ),
+                                        ),
                                       ),
                                     )
                                     .toList(),
@@ -394,59 +409,50 @@ class _AddScreenState extends ConsumerState<AddScreen> {
   Widget _buildEditButtons() {
     return Row(
       children: [
-        // Delete button
-        Expanded(
-          child: SizedBox(
-            height: 55,
-            child: OutlinedButton.icon(
-              onPressed: _confirmDelete,
-              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-              label: const Text(
-                "Delete",
-                style: TextStyle(
-                  color: Colors.redAccent,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+        // Delete
+        SizedBox(
+          height: 55,
+          width: 55,
+          child: ElevatedButton(
+            onPressed: _confirmDelete,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF5252),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.redAccent, width: 1.2),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+              elevation: 0,
+              padding: EdgeInsets.zero,
+            ),
+            child: const Icon(
+              Icons.delete_outline,
+              color: Colors.white,
+              size: 22,
             ),
           ),
         ),
 
         const SizedBox(width: 12),
 
-        // Update button
+        // Update
         Expanded(
-          flex: 2,
           child: SizedBox(
             height: 55,
-            child: ElevatedButton.icon(
+            child: ElevatedButton(
               onPressed: _updateTransaction,
-              icon: const Icon(
-                Icons.check_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-              label: const Text(
-                "Update",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF00885d),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
                 elevation: 0,
+              ),
+              child: const Text(
+                "Update Wallet",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
             ),
           ),

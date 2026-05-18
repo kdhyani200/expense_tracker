@@ -26,8 +26,8 @@ class CategoriesScreen extends ConsumerWidget {
     return Padding(
       padding: EdgeInsets.only(top: screenHeight * 0.08),
       child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
           borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
         ),
         child: Column(
@@ -38,7 +38,7 @@ class CategoriesScreen extends ConsumerWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: Theme.of(context).primaryColor,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -92,24 +92,21 @@ class CategoriesScreen extends ConsumerWidget {
                     SizedBox(
                       width: double.infinity,
                       height: 55,
-                      child: OutlinedButton.icon(
+                      child: ElevatedButton(
                         onPressed: () => _showAddDialog(context, ref),
-                        icon: const Icon(
-                          Icons.add_rounded,
-                          color: Color(0xFF00885d),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF00885d),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
                         ),
-                        label: const Text(
+                        child: const Text(
                           "Add Category",
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: const Color(0xFF00885d),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
                           ),
                         ),
                       ),

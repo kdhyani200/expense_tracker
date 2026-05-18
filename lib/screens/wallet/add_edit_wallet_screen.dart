@@ -47,7 +47,7 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
       hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       filled: true,
-      fillColor: Colors.white,
+      fillColor: Theme.of(context).canvasColor,
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: Colors.grey.shade400, width: .8),
@@ -77,7 +77,7 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: Theme.of(context).shadowColor,
               borderRadius: BorderRadius.circular(15),
               border: Border.all(color: Colors.grey.shade300),
             ),
@@ -221,8 +221,8 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
     return Padding(
       padding: EdgeInsets.only(top: screenHeight * 0.12),
       child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
           borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
         ),
         child: Scaffold(
@@ -230,11 +230,11 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            leading: const BackButton(color: Colors.black),
+            leading: BackButton(color: Theme.of(context).primaryColor),
             title: Text(
               _isEditMode ? "Edit Wallet" : "New Wallet",
-              style: const TextStyle(
-                color: Colors.black,
+              style: TextStyle(
+                color: Theme.of(context).primaryColor,
                 fontWeight: FontWeight.bold,
               ),
             ),

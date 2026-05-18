@@ -54,35 +54,41 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final fmt = NumberFormat('#,##0.00', 'en_IN');
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: Theme.of(context).primaryColor,
+          ),
         ),
-        title: const Text(
+        title: Text(
           "Search",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Theme.of(context).primaryColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Search bar ──────────────────────────────────────────────
             Container(
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: Theme.of(context).canvasColor,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: Colors.grey.shade200),
               ),
               child: TextField(
                 controller: _searchController,
                 focusNode: _focusNode,
-                style: const TextStyle(color: Colors.black87),
+                style: TextStyle(color: Theme.of(context).primaryColor),
                 onChanged: (v) => setState(() => _query = v),
                 decoration: InputDecoration(
                   hintText: "Search by category, note or amount…",
@@ -166,7 +172,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).canvasColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -183,7 +189,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               width: 46,
               height: 46,
               decoration: BoxDecoration(
-                color: style.color.withOpacity(0.15),
+                color: style.color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(style.icon, color: style.color, size: 22),
@@ -199,8 +205,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   _highlight(
                     tx.category,
                     _query,
-                    const TextStyle(
-                      color: Colors.black87,
+                    TextStyle(
+                      color: Theme.of(context).primaryColor,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),

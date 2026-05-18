@@ -65,6 +65,8 @@ class CategoryNotifier extends Notifier<List<CategoryModel>> {
 
   List<CategoryModel> _load() => HiveService.categoryBox.values.toList();
 
+  void loadCategories() => state = _load();
+
   Future<void> addCategory(CategoryModel cat) async {
     await HiveService.categoryBox.put(cat.id, cat);
     state = _load();
