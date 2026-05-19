@@ -20,6 +20,7 @@ class ProfileScreen extends ConsumerWidget {
     final transactions = ref.watch(transactionsProvider);
     final screenWidth = MediaQuery.of(context).size.width;
     final imageSize = screenWidth * 0.28;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final File? photo = user?.imagePath != null ? File(user!.imagePath!) : null;
     final displayName =
@@ -74,7 +75,9 @@ class ProfileScreen extends ConsumerWidget {
                           height: imageSize,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.grey.shade200,
+                            color: isDark
+                                ? Color(0xff252a48)
+                                : Colors.grey.shade200,
                           ),
                           clipBehavior: Clip.antiAlias,
                           child: photo != null && photo.existsSync()
@@ -622,6 +625,7 @@ class ProfileScreen extends ConsumerWidget {
 class _Section extends StatelessWidget {
   final String title;
   final List<Widget> children;
+
   const _Section({required this.title, required this.children});
 
   @override

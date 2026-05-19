@@ -138,13 +138,13 @@ class WalletScreen extends ConsumerWidget {
               "No wallets yet",
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey.shade500,
+                color: Colors.grey.shade300,
                 fontWeight: FontWeight.w500,
               ),
             ),
             Text(
               "Tap + to add your first wallet.",
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade300),
             ),
           ],
         ),

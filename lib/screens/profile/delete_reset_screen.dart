@@ -209,7 +209,7 @@ class DeleteResetScreen extends ConsumerWidget {
                 decoration: InputDecoration(
                   hintText: 'DELETE',
                   filled: true,
-                  fillColor: Colors.grey.shade100,
+                  fillColor: Theme.of(context).canvasColor,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide.none,

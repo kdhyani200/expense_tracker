@@ -346,7 +346,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
           Text(
             "No transactions yet",
             style: TextStyle(
-              color: Colors.grey.shade500,
+              color: Colors.grey.shade300,
               fontWeight: FontWeight.w600,
             ),
           ),
