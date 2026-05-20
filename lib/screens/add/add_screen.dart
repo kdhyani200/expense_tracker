@@ -34,7 +34,8 @@ class _AddScreenState extends ConsumerState<AddScreen> {
 
   final List<String> _types = ['Expense', 'Income'];
 
-  // Categories loaded from categoryProvider
+  // ── Date Format Pattern ────────────────────────────────────────────────────
+  final _dateTimeFormat = DateFormat('dd/MM/yyyy h:mm a');
 
   @override
   void initState() {
@@ -47,7 +48,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
       _selectedWalletId = tx.walletId;
       _selectedCategory = tx.category;
       _dateController = TextEditingController(
-        text: DateFormat('dd/MM/yyyy').format(tx.date),
+        text: _dateTimeFormat.format(tx.date),
       );
       _amountController = TextEditingController(
         text: tx.amount.toStringAsFixed(2),
@@ -163,7 +164,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
         ),
         child: Scaffold(
           backgroundColor: Colors.transparent,
@@ -286,39 +287,76 @@ class _AddScreenState extends ConsumerState<AddScreen> {
 
                           const SizedBox(height: 20),
 
-                          // Date
-                          _buildFieldLabel("Date", false, labelStyle),
+                          // Date & Time
+                          _buildFieldLabel("Date & Time", false, labelStyle),
                           TextFormField(
                             controller: _dateController,
                             readOnly: true,
-                            decoration: _buildInputDecoration("Select Date")
-                                .copyWith(
+                            decoration:
+                                _buildInputDecoration(
+                                  "Select Date & Time",
+                                ).copyWith(
                                   suffixIcon: const Icon(
                                     Icons.calendar_month,
                                     size: 20,
                                   ),
                                 ),
                             onTap: () async {
-                              final DateTime? picked = await showDatePicker(
+                              final initialDateTime =
+                                  _dateController.text.isEmpty
+                                  ? DateTime.now()
+                                  : _dateTimeFormat.parse(_dateController.text);
+
+                              // 1. Pick Date
+                              final DateTime? pickedDate = await showDatePicker(
                                 context: context,
-                                initialDate: _dateController.text.isEmpty
-                                    ? DateTime.now()
-                                    : DateFormat(
-                                        'dd/MM/yyyy',
-                                      ).parse(_dateController.text),
+                                initialDate: initialDateTime,
                                 firstDate: DateTime(2000),
                                 lastDate: DateTime.now(),
                               );
-                              if (picked != null) {
-                                setState(() {
-                                  _dateController.text = DateFormat(
-                                    'dd/MM/yyyy',
-                                  ).format(picked);
-                                });
+
+                              if (pickedDate == null) return;
+
+                              // 2. Pick Time
+                              if (mounted) {
+                                final TimeOfDay? pickedTime =
+                                    await showTimePicker(
+                                      context: context,
+                                      initialTime: TimeOfDay.fromDateTime(
+                                        initialDateTime,
+                                      ),
+                                    );
+
+                                if (pickedTime != null) {
+                                  final finalDateTime = DateTime(
+                                    pickedDate.year,
+                                    pickedDate.month,
+                                    pickedDate.day,
+                                    pickedTime.hour,
+                                    pickedTime.minute,
+                                  );
+
+                                  // Only allow past/current times
+                                  if (finalDateTime.isAfter(DateTime.now())) {
+                                    if (mounted) {
+                                      SnackBarUtils.showSnackBar(
+                                        context,
+                                        "Cannot select a future time!",
+                                        isError: true,
+                                      );
+                                    }
+                                    return;
+                                  }
+
+                                  setState(() {
+                                    _dateController.text = _dateTimeFormat
+                                        .format(finalDateTime);
+                                  });
+                                }
                               }
                             },
                             validator: (val) => val == null || val.isEmpty
-                                ? "Please select a date"
+                                ? "Please select a date and time"
                                 : null,
                           ),
 
@@ -505,7 +543,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
     }
 
     final DateTime parsedDate = _dateController.text.isNotEmpty
-        ? DateFormat('dd/MM/yyyy').parse(_dateController.text)
+        ? _dateTimeFormat.parse(_dateController.text)
         : DateTime.now();
 
     final transaction = TransactionModel(
@@ -513,7 +551,6 @@ class _AddScreenState extends ConsumerState<AddScreen> {
       walletId: selectedWallet.id,
       amount: amount,
       title: _selectedCategory ?? 'Other',
-
       category: _selectedCategory ?? 'Other',
       type: transactionType,
       date: parsedDate,
@@ -547,8 +584,6 @@ class _AddScreenState extends ConsumerState<AddScreen> {
         : TransactionType.expense;
 
     // ── Step 1: reverse the OLD transaction's effect on the wallet ──────────
-    // If the old transaction was on a different wallet we reverse on that wallet;
-    // otherwise we reverse on the current (possibly same) wallet.
     final oldReverseType = old.type == TransactionType.income
         ? TransactionType.expense
         : TransactionType.income;
@@ -562,7 +597,6 @@ class _AddScreenState extends ConsumerState<AddScreen> {
         );
 
     // ── Step 2: guard new values ────────────────────────────────────────────
-    // Re-read wallets after reversal so balance is up-to-date
     final walletsAfterReversal = ref.read(walletsProvider);
     final walletAfterReversal = walletsAfterReversal.firstWhere(
       (w) => w.id == selectedWallet.id,
@@ -570,7 +604,6 @@ class _AddScreenState extends ConsumerState<AddScreen> {
 
     if (newType == TransactionType.expense &&
         walletAfterReversal.balance < newAmount) {
-      // Undo the reversal — put the old balance back
       await ref
           .read(walletsProvider.notifier)
           .updateWalletBalance(
@@ -595,7 +628,6 @@ class _AddScreenState extends ConsumerState<AddScreen> {
         (sum, w) => sum + w.balance,
       );
       if (currentTotal + newAmount > maxTotalBalance) {
-        // Undo the reversal
         await ref
             .read(walletsProvider.notifier)
             .updateWalletBalance(
@@ -625,15 +657,14 @@ class _AddScreenState extends ConsumerState<AddScreen> {
 
     // ── Step 4: overwrite the record in Hive ─────────────────────────────────
     final DateTime parsedDate = _dateController.text.isNotEmpty
-        ? DateFormat('dd/MM/yyyy').parse(_dateController.text)
+        ? _dateTimeFormat.parse(_dateController.text)
         : DateTime.now();
 
     final updated = TransactionModel(
-      id: old.id, // keep same id so Hive overwrites
+      id: old.id,
       walletId: selectedWallet.id,
       amount: newAmount,
       title: _selectedCategory ?? 'Other',
-
       category: _selectedCategory ?? 'Other',
       type: newType,
       date: parsedDate,

@@ -217,7 +217,7 @@ class _SetupProfileScreenState extends ConsumerState<SetupProfileScreen> {
                               backgroundColor: const Color(0xFF00885d),
                               disabledBackgroundColor: const Color(
                                 0xFF00885d,
-                              ).withOpacity(0.6),
+                              ).withValues(alpha: 0.6),
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),

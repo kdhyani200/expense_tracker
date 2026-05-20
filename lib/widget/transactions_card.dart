@@ -99,6 +99,7 @@ class TransactionItemCard extends ConsumerWidget {
                         fontSize: 15,
                       ),
                     ),
+                    const SizedBox(height: 4),
                     Text(
                       _formatDate(transaction.date),
                       style: TextStyle(
@@ -128,21 +129,8 @@ class TransactionItemCard extends ConsumerWidget {
     return Icon(style.icon, color: style.color, size: 24);
   }
 
+  /// Formats the date to show both date and time (e.g., "19 May 2026 4:28 PM")
   String _formatDate(DateTime d) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${d.day} ${months[d.month - 1]} ${d.year}';
+    return DateFormat('d MMM yyyy h:mm a').format(d);
   }
 }

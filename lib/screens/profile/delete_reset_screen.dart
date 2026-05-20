@@ -1,3 +1,4 @@
+import 'package:expense_tracker/screens/onboarding_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/transactions_providers.dart';
@@ -249,11 +250,12 @@ class DeleteResetScreen extends ConsumerWidget {
     if (!context.mounted) return;
 
     if (navigateToOnboarding) {
-      // Pop all routes back to root, then onboarding will show because
-      // userBox is empty.
-      Navigator.of(context).popUntil((r) => r.isFirst);
-      // Restart by pushing onboarding
-      Navigator.of(context).pushNamedAndRemoveUntil('/', (r) => false);
+      // Swapped from pushNamedAndRemoveUntil to direct pushAndRemoveUntil route replacement
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const OnBoarding()),
+        (route) => false, // Clears navigation stack history completely
+      );
     } else {
       Navigator.pop(context);
       SnackBarUtils.showSnackBar(context, successMessage);
