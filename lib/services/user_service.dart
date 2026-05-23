@@ -1,18 +1,24 @@
+import 'package:hive/hive.dart';
 import '../models/user_model.dart';
-import 'hive_service.dart';
 
 class UserService {
-  static const String userKey = 'current_user';
+  static const String _userKey = 'current_user';
 
-  Future<void> saveUser(UserModel user) async {
-    await HiveService.userBox.put(userKey, user);
-  }
+  final Box<UserModel> _box = Hive.box<UserModel>('user');
 
   UserModel? getUser() {
-    return HiveService.userBox.get(userKey);
+    return _box.get(_userKey);
+  }
+
+  Future<void> saveUser(UserModel user) async {
+    await _box.put(_userKey, user);
   }
 
   Future<void> updateUser(UserModel user) async {
-    await HiveService.userBox.put(userKey, user);
+    await _box.put(_userKey, user);
+  }
+
+  Future<void> clearUser() async {
+    await _box.delete(_userKey);
   }
 }

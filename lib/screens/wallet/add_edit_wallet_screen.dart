@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../image_helper.dart';
+import '../../widget/image_helper.dart';
 import '../../models/wallet_model.dart';
 import '../../providers/wallet_providers.dart';
-import '../../snackbar_util.dart';
+import '../../utils/snackbar_util.dart';
 
 /// Single screen that handles both adding a new wallet and editing an existing
 /// one.  Pass [wallet] to open in edit mode; omit it (or pass null) for add.
@@ -100,7 +100,7 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
                 onTap: () => setState(() => _selectedImagePath = null),
                 child: CircleAvatar(
                   radius: 10,
-                  backgroundColor: Colors.white.withValues(alpha: 0.9),
+                  backgroundColor: Colors.white.withOpacity(0.9),
                   child: const Icon(Icons.close, size: 12, color: Colors.black),
                 ),
               ),

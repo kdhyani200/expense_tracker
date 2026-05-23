@@ -176,7 +176,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Theme.of(context).shadowColor,
               blurRadius: 10,
               offset: Offset(0, 4),
             ),
@@ -189,7 +189,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               width: 46,
               height: 46,
               decoration: BoxDecoration(
-                color: style.color.withValues(alpha: 0.15),
+                color: style.color.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(style.icon, color: style.color, size: 22),

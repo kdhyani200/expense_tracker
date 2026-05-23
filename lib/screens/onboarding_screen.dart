@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../setup_profile.dart';
+import 'setup_profile.dart';
 
 class OnBoarding extends StatelessWidget {
   const OnBoarding({super.key});
@@ -22,7 +22,7 @@ class OnBoarding extends StatelessWidget {
             : Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: isDark ? Colors.black : Colors.white,
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -33,7 +33,7 @@ class OnBoarding extends StatelessWidget {
                   width: media.size.width * 0.7,
                   height: media.size.width * 0.7,
                   decoration: BoxDecoration(
-                    color: isDark ? Color(0xFF1a222e) : const Color(0xFFF0F3FF),
+                    color: isDark ? Colors.grey[900] : const Color(0xFFF0F3FF),
                     borderRadius: BorderRadius.circular(24),
                   ),
                   padding: const EdgeInsets.all(25),

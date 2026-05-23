@@ -250,13 +250,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               "No transactions yet",
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey.shade300,
+                color: Colors.grey.shade500,
                 fontWeight: FontWeight.w500,
               ),
             ),
             Text(
               "Add your first expense or income to see it here.",
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade300),
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
             ),
           ],
         ),
@@ -274,7 +274,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       children: [
         CircleAvatar(
           radius: 22,
-          backgroundColor: const Color(0xFF00885d).withValues(alpha: 0.12),
+          backgroundColor: const Color(0xFF00885d).withOpacity(0.12),
           backgroundImage: hasImage ? FileImage(File(user.imagePath!)) : null,
           child: hasImage
               ? null
@@ -299,7 +299,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           children: [
             Text(
               "Hello,",
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
             ),
             Text(
               (user == null ||
@@ -308,7 +308,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ? "User"
                   : "${user.firstName} ${user.lastName}".trim(),
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 color: Theme.of(context).primaryColor,
                 fontWeight: FontWeight.bold,
               ),

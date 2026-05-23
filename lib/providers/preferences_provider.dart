@@ -2,21 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-// ── Model ─────────────────────────────────────────────────────────────────────
-
 class AppPreferences {
   final ThemeMode themeMode;
   final String currencySymbol;
   final String currencyCode;
   final int decimalPlaces;
-  final bool notificationsEnabled;
 
   const AppPreferences({
     this.themeMode = ThemeMode.system,
     this.currencySymbol = '₹',
     this.currencyCode = 'INR',
     this.decimalPlaces = 2,
-    this.notificationsEnabled = false,
   });
 
   AppPreferences copyWith({
@@ -24,19 +20,15 @@ class AppPreferences {
     String? currencySymbol,
     String? currencyCode,
     int? decimalPlaces,
-    bool? notificationsEnabled,
   }) {
     return AppPreferences(
       themeMode: themeMode ?? this.themeMode,
       currencySymbol: currencySymbol ?? this.currencySymbol,
       currencyCode: currencyCode ?? this.currencyCode,
       decimalPlaces: decimalPlaces ?? this.decimalPlaces,
-      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
     );
   }
 }
-
-// ── Notifier ──────────────────────────────────────────────────────────────────
 
 const _boxName = 'preferences';
 
@@ -54,16 +46,14 @@ class PreferencesNotifier extends Notifier<AppPreferences> {
     final mode = modeStr == 'dark'
         ? ThemeMode.dark
         : modeStr == 'light'
-        ? ThemeMode.light
-        : ThemeMode.system;
+            ? ThemeMode.light
+            : ThemeMode.system;
 
     return AppPreferences(
       themeMode: mode,
       currencySymbol: _box.get('currencySymbol', defaultValue: '₹') as String,
       currencyCode: _box.get('currencyCode', defaultValue: 'INR') as String,
       decimalPlaces: _box.get('decimalPlaces', defaultValue: 2) as int,
-      notificationsEnabled:
-          _box.get('notificationsEnabled', defaultValue: false) as bool,
     );
   }
 
@@ -71,8 +61,8 @@ class PreferencesNotifier extends Notifier<AppPreferences> {
     final str = mode == ThemeMode.dark
         ? 'dark'
         : mode == ThemeMode.light
-        ? 'light'
-        : 'system';
+            ? 'light'
+            : 'system';
     await _box.put('themeMode', str);
     state = state.copyWith(themeMode: mode);
   }
@@ -87,17 +77,11 @@ class PreferencesNotifier extends Notifier<AppPreferences> {
     await _box.put('decimalPlaces', places);
     state = state.copyWith(decimalPlaces: places);
   }
-
-  Future<void> setNotifications(bool enabled) async {
-    await _box.put('notificationsEnabled', enabled);
-    state = state.copyWith(notificationsEnabled: enabled);
-  }
 }
 
 final preferencesProvider =
     NotifierProvider<PreferencesNotifier, AppPreferences>(
-      PreferencesNotifier.new,
-    );
+        PreferencesNotifier.new);
 
 // ── Currency list ─────────────────────────────────────────────────────────────
 

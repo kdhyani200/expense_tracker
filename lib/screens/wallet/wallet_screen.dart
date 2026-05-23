@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/wallet_model.dart';
+import '../../providers/preferences_provider.dart';
 import '../../providers/wallet_providers.dart';
+import '../../utils/amount_formatter.dart';
 import '../../widget/wallet_card.dart';
 import 'add_edit_wallet_screen.dart';
 
@@ -22,6 +24,7 @@ class WalletScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final allWallets = ref.watch(walletsProvider);
+    final prefs = ref.watch(preferencesProvider);
     final screenHeight = MediaQuery.of(context).size.height;
     final fmt = NumberFormat('#,##0.00', 'en_IN');
 
@@ -41,9 +44,13 @@ class WalletScreen extends ConsumerWidget {
               child: Column(
                 children: [
                   Text(
-                    "₹${fmt.format(total)}",
+                    formatAmount(
+                      total,
+                      prefs.currencySymbol,
+                      prefs.decimalPlaces,
+                    ),
                     style: TextStyle(
-                      fontSize: 40,
+                      fontSize: 36,
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).primaryColor,
                     ),

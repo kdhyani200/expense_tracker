@@ -1,13 +1,16 @@
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
+
+import '../../providers/category_provider.dart';
 import '../../providers/transactions_providers.dart';
 import '../../providers/wallet_providers.dart';
-import '../../providers/category_provider.dart';
 import '../../services/data_services.dart';
-import '../../snackbar_util.dart';
+import '../../services/permission_service.dart';
+import '../../utils/snackbar_util.dart';
 
 class BackupRestoreScreen extends ConsumerStatefulWidget {
   const BackupRestoreScreen({super.key});
@@ -18,86 +21,211 @@ class BackupRestoreScreen extends ConsumerStatefulWidget {
 }
 
 class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
+  static const _dirKey = 'backupDirectory';
+
   List<File> _backupFiles = [];
   bool _loading = false;
+  String? _saveDirectory;
 
   @override
   void initState() {
     super.initState();
+    _saveDirectory = Hive.box('preferences').get(_dirKey) as String?;
     _loadBackupFiles();
   }
 
   Future<void> _loadBackupFiles() async {
-    final dir = await getApplicationDocumentsDirectory();
-    final files =
-        dir
-            .listSync()
-            .whereType<File>()
-            .where((f) => f.path.endsWith('.mbak'))
-            .toList()
-          ..sort(
-            (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()),
-          );
-    setState(() => _backupFiles = files);
+    final granted = await PermissionService.requestStoragePermission();
+
+    if (!granted) return;
+    final files = await DataService.listBackups(_saveDirectory);
+    if (mounted) setState(() => _backupFiles = files);
   }
+
+  // ── Create backup ────────────────────────────────────────────────────────
 
   Future<void> _createBackup() async {
     setState(() => _loading = true);
+    final granted = await PermissionService.requestStoragePermission();
+
+    if (!granted) return;
     try {
-      final path = await DataService.createBackup();
+      final path = await DataService.createBackup(_saveDirectory);
       await _loadBackupFiles();
       if (mounted) {
-        SnackBarUtils.showSnackBar(context, 'Backup saved to Documents folder');
-        _showBackupSavedDialog(path);
+        _showSuccessDialog('Backup Created', path, isBackup: true);
+        // Open share sheet so user can save to Downloads / Drive / etc.
+        await DataService.openFile(path);
+      }
+    } catch (e) {
+      if (mounted)
+        SnackBarUtils.showSnackBar(context, 'Backup failed: $e', isError: true);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  // ── Restore — pick any .mbak file ────────────────────────────────────────
+
+  Future<void> _pickAndRestore() async {
+    final granted = await PermissionService.requestStoragePermission();
+
+    if (!granted) return;
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+      allowMultiple: false,
+      dialogTitle: 'Select a .mbak backup file',
+    );
+
+    if (result == null || result.files.isEmpty) return;
+    final path = result.files.single.path;
+    if (path == null) return;
+
+    if (!path.endsWith('.mbak')) {
+      if (mounted) {
+        SnackBarUtils.showSnackBar(
+          context,
+          'Please select a valid .mbak file',
+          isError: true,
+        );
+      }
+      return;
+    }
+
+    await _restoreFromPath(path);
+  }
+
+  Future<void> _restoreFromPath(String filePath) async {
+    final fileName = filePath.split('/').last;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Restore Backup?',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'This will replace all current data with:\n\n$fileName\n\n'
+          'Current data will be permanently overwritten.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Restore', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _loading = true);
+    try {
+      final count = await DataService.restoreBackup(filePath);
+      ref.read(transactionsProvider.notifier).loadTransactions();
+      ref.read(walletsProvider.notifier).loadWallets();
+      ref.read(categoryProvider.notifier).loadCategories();
+      if (mounted) {
+        _showSuccessDialog(
+          'Restore Complete',
+          '$count transactions restored successfully.',
+          isBackup: false,
+        );
       }
     } catch (e) {
       if (mounted) {
-        SnackBarUtils.showSnackBar(context, 'Backup failed: $e', isError: true);
+        SnackBarUtils.showSnackBar(
+          context,
+          'Restore failed: $e',
+          isError: true,
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
-  void _showBackupSavedDialog(String path) {
+  // ── Change save/search directory ─────────────────────────────────────────
+
+  Future<void> _changeDirectory() async {
+    final granted = await PermissionService.requestStoragePermission();
+
+    if (!granted) return;
+    final result = await FilePicker.platform.getDirectoryPath(
+      dialogTitle: 'Choose backup folder',
+    );
+    if (result == null) return;
+
+    await Hive.box('preferences').put(_dirKey, result);
+    setState(() => _saveDirectory = result);
+    await _loadBackupFiles();
+
+    if (mounted) {
+      SnackBarUtils.showSnackBar(
+        context,
+        'Backup folder set to: ${result.split('/').last}',
+      );
+    }
+  }
+
+  void _showSuccessDialog(
+    String title,
+    String detail, {
+    required bool isBackup,
+  }) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.check_circle, color: const Color(0xFF00885d)),
-            const SizedBox(width: 8),
-            const Text(
-              'Backup Created',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Icon(
+              isBackup ? Icons.cloud_done : Icons.restore,
+              color: const Color(0xFF00885d),
             ),
+            const SizedBox(width: 8),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Your data has been backed up to:'),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Theme.of(context).canvasColor,
-                borderRadius: BorderRadius.circular(8),
+            if (isBackup) ...[
+              const Text('Your data has been backed up to:'),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  detail,
+                  style: const TextStyle(fontSize: 12),
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              child: Text(
-                path,
-                style: const TextStyle(fontSize: 12),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 3,
+              const SizedBox(height: 8),
+              Text(
+                'Transfer the .mbak file to a safe place (cloud, PC) so you can restore it after reinstalling.',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Keep this .mbak file safe. You can restore from it anytime.',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-            ),
+            ] else
+              Text(detail),
           ],
         ),
         actions: [
@@ -114,69 +242,6 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
         ],
       ),
     );
-  }
-
-  Future<void> _restoreFromFile(File file) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Restore Backup?',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        content: Text(
-          'This will replace all your current data with the backup from:\n\n'
-          '${file.path.split('/').last}\n\n'
-          'Current data will be permanently overwritten.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(
-              'Restore',
-              style: TextStyle(color: Theme.of(context).colorScheme.surface),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true || !mounted) return;
-
-    setState(() => _loading = true);
-    try {
-      final count = await DataService.restoreBackup(file.path);
-      ref.read(transactionsProvider.notifier).loadTransactions();
-      ref.read(walletsProvider.notifier).loadWallets();
-      ref.read(categoryProvider.notifier).loadCategories();
-      if (mounted) {
-        SnackBarUtils.showSnackBar(
-          context,
-          'Restored $count transactions successfully!',
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        SnackBarUtils.showSnackBar(
-          context,
-          'Restore failed: $e',
-          isError: true,
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
   }
 
   Future<void> _deleteBackupFile(File file) async {
@@ -231,81 +296,100 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
           : ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                // ── How it works banner ─────────────────────────────
+                // ── Info banner ─────────────────────────────────────
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF00885d).withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(16),
+                    color: const Color(0xFF00885d).withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: const Color(0xFF00885d).withValues(alpha: 0.2),
+                      color: const Color(0xFF00885d).withOpacity(0.2),
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Text(
+                    'Backups are saved as .mbak files. Move the file to a cloud drive or PC for safekeeping. To restore after reinstalling, pick the file with the Restore button.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade700,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // ── Current directory ───────────────────────────────
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).canvasColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200, width: .8),
+                  ),
+                  child: Row(
                     children: [
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.info_outline,
-                            color: Color(0xFF00885d),
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'How it works',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF00885d),
-                            ),
-                          ),
-                        ],
+                      Icon(
+                        Icons.folder_outlined,
+                        color: Colors.grey.shade300,
+                        size: 20,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '• Backups are saved as .mbak files in your Documents folder.\n'
-                        '• Transfer the .mbak file to a safe place (cloud, PC).\n'
-                        '• After reinstalling, come here and tap Restore to pick your file.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade700,
-                          height: 1.6,
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _saveDirectory != null
+                              ? _saveDirectory!
+                              : 'Default: Downloads / Documents',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-                // ── Create backup button ────────────────────────────
-                SizedBox(
-                  width: double.infinity,
-                  height: 54,
-                  child: ElevatedButton.icon(
-                    onPressed: _createBackup,
-                    icon: const Icon(Icons.backup_rounded, color: Colors.white),
-                    label: const Text(
-                      'Create Backup Now',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
+                // ── Three action buttons ────────────────────────────
+                Row(
+                  children: [
+                    Expanded(
+                      child: _ActionButton(
+                        icon: Icons.backup_rounded,
+                        label: 'Create\nBackup',
+                        color: const Color(0xFF00885d),
+                        onTap: _createBackup,
                       ),
                     ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00885d),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _ActionButton(
+                        icon: Icons.restore_rounded,
+                        label: 'Restore\nBackup',
+                        color: Colors.orange,
+                        onTap: _pickAndRestore,
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _ActionButton(
+                        icon: Icons.folder_open_rounded,
+                        label: 'Change\nFolder',
+                        color: Colors.indigo,
+                        onTap: _changeDirectory,
+                      ),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 28),
 
-                // ── Saved backups list ──────────────────────────────
+                // ── Local backup list ───────────────────────────────
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -340,8 +424,16 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            'No backups yet',
-                            style: TextStyle(color: Colors.grey.shade500),
+                            'No backups in this folder',
+                            style: TextStyle(color: Colors.grey.shade300),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Create a backup or change the folder',
+                            style: TextStyle(
+                              color: Colors.grey.shade300,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
@@ -376,7 +468,9 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00885d).withOpacity(0.1),
+                            color: const Color(
+                              0xFF00885d,
+                            ).withValues(alpha: .1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
@@ -387,7 +481,8 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
                         ),
                         title: Text(
                           name,
-                          style: const TextStyle(
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColor,
                             fontWeight: FontWeight.w600,
                             fontSize: 13,
                           ),
@@ -409,7 +504,7 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
                                 color: Color(0xFF00885d),
                                 size: 22,
                               ),
-                              onPressed: () => _restoreFromFile(file),
+                              onPressed: () => _restoreFromPath(file.path),
                               tooltip: 'Restore',
                             ),
                             IconButton(
@@ -428,6 +523,59 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
                   }),
               ],
             ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: Colors.white, size: 22),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: color,
+                height: 1.3,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

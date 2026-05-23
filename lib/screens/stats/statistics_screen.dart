@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../models/transaction_model.dart';
+import '../../providers/preferences_provider.dart';
 import '../../providers/transactions_providers.dart';
+import '../../utils/amount_formatter.dart';
 import '../../widget/transactions_card.dart';
 
 enum StatsType { weekly, monthly, yearly }
@@ -23,6 +25,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
   @override
   Widget build(BuildContext context) {
     final transactions = ref.watch(transactionsProvider);
+    final prefs = ref.watch(preferencesProvider);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -51,7 +54,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
           const SizedBox(height: 12),
           _buildSwitcher(),
           const SizedBox(height: 12),
-          _buildChart(transactions),
+          _buildChart(transactions, prefs),
           const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -107,7 +110,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
           padding: const EdgeInsets.symmetric(vertical: 7),
           decoration: BoxDecoration(
             color: selected
-                ? const Color(0xFF01734f).withValues(alpha: .3)
+                ? const Color(0xFF00885d).withOpacity(.3)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),
@@ -127,7 +130,10 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
     );
   }
 
-  Widget _buildChart(List<TransactionModel> transactions) {
+  Widget _buildChart(
+    List<TransactionModel> transactions,
+    AppPreferences prefs,
+  ) {
     final chartData = _generateChartData(transactions);
     final maxValue = _calculateMax(chartData);
 
@@ -211,7 +217,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
                 touchTooltipData: BarTouchTooltipData(
                   getTooltipItem: (group, groupIndex, rod, rodIndex) =>
                       BarTooltipItem(
-                        "₹${rod.toY.toStringAsFixed(0)}",
+                        "${formatAmount(rod.toY, prefs.currencySymbol, prefs.decimalPlaces)}",
                         const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -346,7 +352,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
           Text(
             "No transactions yet",
             style: TextStyle(
-              color: Colors.grey.shade300,
+              color: Colors.grey.shade500,
               fontWeight: FontWeight.w600,
             ),
           ),

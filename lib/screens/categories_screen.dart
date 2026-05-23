@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../image_helper.dart';
+import '../widget/image_helper.dart';
 import '../../models/category_model.dart';
 import '../../providers/category_provider.dart';
 
@@ -152,7 +152,7 @@ class _SectionHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: .1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: color, size: 16),
@@ -256,12 +256,9 @@ class _CategoryChip extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
+                color: color.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: color.withValues(alpha: 0.25),
-                  width: 1.2,
-                ),
+                border: Border.all(color: color.withOpacity(0.25), width: 1.2),
               ),
               child: _buildIcon(),
             ),
@@ -394,6 +391,7 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
       child: SingleChildScrollView(
@@ -404,9 +402,13 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Title
-              const Text(
+              Text(
                 "New Category",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -414,7 +416,7 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
               Container(
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: Theme.of(context).canvasColor,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -427,9 +429,16 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
               const SizedBox(height: 16),
 
               // Name
-              const Text("Name", style: TextStyle(fontWeight: FontWeight.w600)),
+              Text(
+                "Name",
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
               const SizedBox(height: 8),
               TextField(
+                maxLength: 20,
                 controller: _nameCtrl,
                 textCapitalization: TextCapitalization.words,
                 decoration: InputDecoration(
@@ -440,7 +449,7 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
                     vertical: 12,
                   ),
                   filled: true,
-                  fillColor: Colors.grey.shade50,
+                  fillColor: Theme.of(context).canvasColor,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide(color: Colors.grey.shade300),
@@ -520,7 +529,7 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
                   child: Container(
                     height: 180,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
+                      color: Theme.of(context).canvasColor,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.grey.shade200),
                     ),
@@ -546,7 +555,7 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
                           child: Container(
                             decoration: BoxDecoration(
                               color: sel
-                                  ? _selectedColor.withOpacity(0.15)
+                                  ? _selectedColor.withOpacity(.15)
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(8),
                               border: sel
@@ -582,12 +591,12 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
                   ),
                   decoration: BoxDecoration(
                     color: _usingImage
-                        ? const Color(0xFF00885d).withOpacity(0.06)
-                        : Colors.grey.shade50,
+                        ? const Color(0xFF00885d).withOpacity(.06)
+                        : Theme.of(context).canvasColor,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: _usingImage
-                          ? const Color(0xFF00885d).withOpacity(0.4)
+                          ? const Color(0xFF00885d).withOpacity(.4)
                           : Colors.grey.shade300,
                       width: _usingImage ? 1.2 : .8,
                     ),
@@ -613,9 +622,7 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
                         ),
                       const SizedBox(width: 10),
                       Text(
-                        _usingImage
-                            ? "Image selected — tap to change"
-                            : "Choose from gallery",
+                        _usingImage ? "Image selected" : "Choose from gallery",
                         style: TextStyle(
                           color: _usingImage
                               ? const Color(0xFF00885d)
@@ -656,9 +663,9 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 13),
                       ),
-                      child: const Text(
+                      child: Text(
                         "Cancel",
-                        style: TextStyle(color: Colors.black54),
+                        style: TextStyle(color: Theme.of(context).primaryColor),
                       ),
                     ),
                   ),

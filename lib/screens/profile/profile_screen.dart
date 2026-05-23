@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/preferences_provider.dart';
 import '../../providers/transactions_providers.dart';
 import '../../providers/user_profile.dart';
 import '../../services/data_services.dart';
-import '../../snackbar_util.dart';
+import '../../services/permission_service.dart';
+import '../../utils/snackbar_util.dart';
 import 'backup_restore_screen.dart';
 import 'delete_reset_screen.dart';
 import 'edit_profile_picture.dart';
@@ -20,7 +22,6 @@ class ProfileScreen extends ConsumerWidget {
     final transactions = ref.watch(transactionsProvider);
     final screenWidth = MediaQuery.of(context).size.width;
     final imageSize = screenWidth * 0.28;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final File? photo = user?.imagePath != null ? File(user!.imagePath!) : null;
     final displayName =
@@ -75,9 +76,7 @@ class ProfileScreen extends ConsumerWidget {
                           height: imageSize,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: isDark
-                                ? Color(0xff252a48)
-                                : Colors.grey.shade200,
+                            color: Theme.of(context).shadowColor,
                           ),
                           clipBehavior: Clip.antiAlias,
                           child: photo != null && photo.existsSync()
@@ -152,21 +151,6 @@ class ProfileScreen extends ConsumerWidget {
                   subtitle: prefs.decimalPlaces.toString(),
                   onTap: () =>
                       _showDecimalPicker(context, ref, prefs.decimalPlaces),
-                ),
-                _SettingTile(
-                  icon: Icons.notifications_outlined,
-                  iconColor: Colors.purple,
-                  title: 'Daily Reminder',
-                  subtitle: prefs.notificationsEnabled ? 'Enabled' : 'Disabled',
-                  trailing: Switch.adaptive(
-                    value: prefs.notificationsEnabled,
-                    inactiveThumbColor: Colors.grey.shade300,
-                    activeThumbColor: const Color(0xFF00885d),
-                    onChanged: (v) => ref
-                        .read(preferencesProvider.notifier)
-                        .setNotifications(v),
-                  ),
-                  onTap: () {},
                 ),
               ],
             ),
@@ -473,9 +457,24 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   Future<void> _exportCsv(BuildContext context) async {
+    final granted = await PermissionService.requestStoragePermission();
+
+    if (!granted) return;
+    // 1. Ask user where to save
+    final selectedDir = await FilePicker.platform.getDirectoryPath(
+      dialogTitle: 'Choose where to save the CSV',
+    );
+    // User cancelled the picker
+    if (selectedDir == null) return;
+    if (!context.mounted) return;
+
     try {
-      final path = await DataService.exportCsv();
+      final path = await DataService.exportCsv(selectedDir);
       if (!context.mounted) return;
+
+      // Open with system viewer / share sheet
+      await DataService.openFile(path);
+
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
@@ -501,7 +500,7 @@ class ProfileScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).canvasColor,
+                  color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -625,7 +624,6 @@ class ProfileScreen extends ConsumerWidget {
 class _Section extends StatelessWidget {
   final String title;
   final List<Widget> children;
-
   const _Section({required this.title, required this.children});
 
   @override
@@ -652,7 +650,7 @@ class _Section extends StatelessWidget {
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.25),
+                color: Colors.black.withOpacity(0.25),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),

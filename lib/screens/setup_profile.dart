@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'models/user_model.dart';
-import 'providers/user_profile.dart';
-import 'screens/main_screen.dart';
+import '../models/user_model.dart';
+import '../providers/user_profile.dart';
+import 'main_screen.dart';
 
 class SetupProfileScreen extends ConsumerStatefulWidget {
   const SetupProfileScreen({super.key});
@@ -148,7 +148,7 @@ class _SetupProfileScreenState extends ConsumerState<SetupProfileScreen> {
                         Text(
                           'Smart expense tracking, simplified.',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: .8),
+                            color: Colors.white.withOpacity(.8),
                             fontSize: 14,
                           ),
                         ),
@@ -217,7 +217,7 @@ class _SetupProfileScreenState extends ConsumerState<SetupProfileScreen> {
                               backgroundColor: const Color(0xFF00885d),
                               disabledBackgroundColor: const Color(
                                 0xFF00885d,
-                              ).withValues(alpha: 0.6),
+                              ).withOpacity(0.6),
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),

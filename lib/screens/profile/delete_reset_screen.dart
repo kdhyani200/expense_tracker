@@ -1,11 +1,12 @@
-import 'package:expense_tracker/screens/onboarding_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/transactions_providers.dart';
+import '../../providers/user_profile.dart';
 import '../../providers/wallet_providers.dart';
 import '../../providers/category_provider.dart';
 import '../../services/data_services.dart';
-import '../../snackbar_util.dart';
+import '../../utils/snackbar_util.dart';
+import '../onboarding_screen.dart';
 
 class DeleteResetScreen extends ConsumerWidget {
   const DeleteResetScreen({super.key});
@@ -100,6 +101,11 @@ class DeleteResetScreen extends ConsumerWidget {
                   'This will delete everything — records, wallets, categories, and your profile. The app will restart to the initial setup.',
               action: () async {
                 await DataService.resetApp();
+
+                ref.read(userProfileProvider.notifier).loadUser();
+                ref.read(transactionsProvider.notifier).loadTransactions();
+                ref.read(walletsProvider.notifier).loadWallets();
+                ref.read(categoryProvider.notifier).loadCategories();
               },
               successMessage: 'App reset.',
               navigateToOnboarding: true,
@@ -170,9 +176,9 @@ class DeleteResetScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text(
+            child: Text(
               'Continue',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Theme.of(context).colorScheme.surface),
             ),
           ),
         ],
@@ -187,6 +193,7 @@ class DeleteResetScreen extends ConsumerWidget {
       barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -204,11 +211,13 @@ class DeleteResetScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               TextField(
+                style: TextStyle(color: Theme.of(context).primaryColor),
                 controller: controller,
                 autofocus: true,
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   hintText: 'DELETE',
+                  hintStyle: TextStyle(color: Colors.grey.shade300),
                   filled: true,
                   fillColor: Theme.of(context).canvasColor,
                   border: OutlineInputBorder(
@@ -234,9 +243,9 @@ class DeleteResetScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Confirm',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Theme.of(context).colorScheme.surface),
               ),
             ),
           ],
@@ -250,12 +259,17 @@ class DeleteResetScreen extends ConsumerWidget {
     if (!context.mounted) return;
 
     if (navigateToOnboarding) {
-      // Swapped from pushNamedAndRemoveUntil to direct pushAndRemoveUntil route replacement
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const OnBoarding()),
-        (route) => false, // Clears navigation stack history completely
-      );
+      ref.invalidate(userProfileProvider);
+      ref.invalidate(transactionsProvider);
+      ref.invalidate(walletsProvider);
+      ref.invalidate(categoryProvider);
+
+      if (context.mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const OnBoarding()),
+          (route) => false,
+        );
+      }
     } else {
       Navigator.pop(context);
       SnackBarUtils.showSnackBar(context, successMessage);
@@ -307,7 +321,7 @@ class _ActionTile extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1),
+                  color: iconColor.withValues(alpha: .1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: iconColor, size: 22),
@@ -342,7 +356,7 @@ class _ActionTile extends StatelessWidget {
               ),
               child: Text(
                 buttonLabel,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),

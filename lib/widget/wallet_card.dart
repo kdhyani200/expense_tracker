@@ -26,7 +26,7 @@ class WalletCard extends StatelessWidget {
               height: 50,
 
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                color: Theme.of(context).shadowColor,
 
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -36,7 +36,7 @@ class WalletCard extends StatelessWidget {
 
                 child: wallet.imagePath != null
                     ? Image.file(File(wallet.imagePath!), fit: BoxFit.cover)
-                    : Icon(Icons.wallet, color: Colors.grey.shade500),
+                    : Icon(Icons.wallet, color: Colors.grey.shade400),
               ),
             ),
 

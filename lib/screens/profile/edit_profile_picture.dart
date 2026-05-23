@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/user_model.dart';
 import '../../providers/user_profile.dart';
-import '../../snackbar_util.dart';
+import '../../utils/snackbar_util.dart';
 
 class AddProfilePictureScreen extends ConsumerStatefulWidget {
   const AddProfilePictureScreen({
@@ -172,7 +172,7 @@ class _AddProfilePictureScreenState
         children: [
           CircleAvatar(
             radius: 25,
-            backgroundColor: const Color(0xFF00885d).withValues(alpha: 0.2),
+            backgroundColor: const Color(0xFF00885d).withOpacity(0.2),
             child: Icon(icon, color: const Color(0xFF00885d)),
           ),
           const SizedBox(height: 8),
@@ -236,7 +236,7 @@ class _AddProfilePictureScreenState
                                     clipBehavior: Clip.antiAlias,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: Colors.grey.shade200,
+                                      color: Theme.of(context).shadowColor,
                                     ),
                                     child: _selectedImage != null
                                         ? Image.file(
@@ -246,7 +246,7 @@ class _AddProfilePictureScreenState
                                         : Icon(
                                             Icons.person,
                                             size: profileImageSize * 0.4,
-                                            color: Colors.white,
+                                            color: Colors.grey.shade400,
                                           ),
                                   ),
                                   Positioned(
@@ -265,8 +265,8 @@ class _AddProfilePictureScreenState
                                           ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withValues(
-                                                alpha: 0.1,
+                                              color: Colors.black.withOpacity(
+                                                0.1,
                                               ),
                                               blurRadius: 5,
                                             ),
