@@ -293,235 +293,241 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                // ── Info banner ─────────────────────────────────────
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF00885d).withOpacity(0.06),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: const Color(0xFF00885d).withOpacity(0.2),
+          : SafeArea(
+              bottom: true,
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  // ── Info banner ─────────────────────────────────────
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00885d).withValues(alpha: .06),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: const Color(0xFF00885d).withValues(alpha: .2),
+                      ),
+                    ),
+                    child: Text(
+                      'Backups are saved as .mbak files. Move the file to a cloud drive or PC for safekeeping. To restore after reinstalling, pick the file with the Restore button.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade700,
+                        height: 1.5,
+                      ),
                     ),
                   ),
-                  child: Text(
-                    'Backups are saved as .mbak files. Move the file to a cloud drive or PC for safekeeping. To restore after reinstalling, pick the file with the Restore button.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade700,
-                      height: 1.5,
+
+                  const SizedBox(height: 20),
+
+                  // ── Current directory ───────────────────────────────
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).canvasColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.grey.shade200,
+                        width: .8,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.folder_outlined,
+                          color: Colors.grey.shade300,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _saveDirectory != null
+                                ? _saveDirectory!
+                                : 'Default: Downloads / Documents',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
 
-                const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
-                // ── Current directory ───────────────────────────────
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).canvasColor,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200, width: .8),
-                  ),
-                  child: Row(
+                  // ── Three action buttons ────────────────────────────
+                  Row(
                     children: [
-                      Icon(
-                        Icons.folder_outlined,
-                        color: Colors.grey.shade300,
-                        size: 20,
+                      Expanded(
+                        child: _ActionButton(
+                          icon: Icons.backup_rounded,
+                          label: 'Create\nBackup',
+                          color: const Color(0xFF00885d),
+                          onTap: _createBackup,
+                        ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: Text(
-                          _saveDirectory != null
-                              ? _saveDirectory!
-                              : 'Default: Downloads / Documents',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                        child: _ActionButton(
+                          icon: Icons.restore_rounded,
+                          label: 'Restore\nBackup',
+                          color: Colors.orange,
+                          onTap: _pickAndRestore,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _ActionButton(
+                          icon: Icons.folder_open_rounded,
+                          label: 'Change\nFolder',
+                          color: Colors.indigo,
+                          onTap: _changeDirectory,
                         ),
                       ),
                     ],
                   ),
-                ),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 28),
 
-                // ── Three action buttons ────────────────────────────
-                Row(
-                  children: [
-                    Expanded(
-                      child: _ActionButton(
-                        icon: Icons.backup_rounded,
-                        label: 'Create\nBackup',
-                        color: const Color(0xFF00885d),
-                        onTap: _createBackup,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _ActionButton(
-                        icon: Icons.restore_rounded,
-                        label: 'Restore\nBackup',
-                        color: Colors.orange,
-                        onTap: _pickAndRestore,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _ActionButton(
-                        icon: Icons.folder_open_rounded,
-                        label: 'Change\nFolder',
-                        color: Colors.indigo,
-                        onTap: _changeDirectory,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 28),
-
-                // ── Local backup list ───────────────────────────────
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Saved Backups',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      '${_backupFiles.length} file${_backupFiles.length == 1 ? '' : 's'}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-
-                if (_backupFiles.isEmpty)
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 32),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.folder_open,
-                            size: 56,
-                            color: Colors.grey.shade300,
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            'No backups in this folder',
-                            style: TextStyle(color: Colors.grey.shade300),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Create a backup or change the folder',
-                            style: TextStyle(
-                              color: Colors.grey.shade300,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                else
-                  ..._backupFiles.map((file) {
-                    final name = file.path.split('/').last;
-                    final modified = file.lastModifiedSync();
-                    final sizeKb = (file.lengthSync() / 1024).toStringAsFixed(
-                      1,
-                    );
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).canvasColor,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Theme.of(context).shadowColor,
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
+                  // ── Local backup list ───────────────────────────────
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Saved Backups',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                         ),
-                        leading: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: const Color(
-                              0xFF00885d,
-                            ).withValues(alpha: .1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.insert_drive_file,
-                            color: Color(0xFF00885d),
-                            size: 22,
-                          ),
+                      ),
+                      Text(
+                        '${_backupFiles.length} file${_backupFiles.length == 1 ? '' : 's'}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade500,
                         ),
-                        title: Text(
-                          name,
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        subtitle: Text(
-                          '${fmt.format(modified)} · $sizeKb KB',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  if (_backupFiles.isEmpty)
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 32),
+                        child: Column(
                           children: [
-                            IconButton(
-                              icon: const Icon(
-                                Icons.restore_rounded,
-                                color: Color(0xFF00885d),
-                                size: 22,
-                              ),
-                              onPressed: () => _restoreFromPath(file.path),
-                              tooltip: 'Restore',
+                            Icon(
+                              Icons.folder_open,
+                              size: 56,
+                              color: Colors.grey.shade300,
                             ),
-                            IconButton(
-                              icon: Icon(
-                                Icons.delete_outline,
-                                color: Colors.red.shade300,
-                                size: 22,
+                            const SizedBox(height: 10),
+                            Text(
+                              'No backups in this folder',
+                              style: TextStyle(color: Colors.grey.shade300),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Create a backup or change the folder',
+                              style: TextStyle(
+                                color: Colors.grey.shade300,
+                                fontSize: 12,
                               ),
-                              onPressed: () => _deleteBackupFile(file),
-                              tooltip: 'Delete',
                             ),
                           ],
                         ),
                       ),
-                    );
-                  }),
-              ],
+                    )
+                  else
+                    ..._backupFiles.map((file) {
+                      final name = file.path.split('/').last;
+                      final modified = file.lastModifiedSync();
+                      final sizeKb = (file.lengthSync() / 1024).toStringAsFixed(
+                        1,
+                      );
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).canvasColor,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Theme.of(context).shadowColor,
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          leading: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFF00885d,
+                              ).withValues(alpha: .1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.insert_drive_file,
+                              color: Color(0xFF00885d),
+                              size: 22,
+                            ),
+                          ),
+                          title: Text(
+                            name,
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(
+                            '${fmt.format(modified)} · $sizeKb KB',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.restore_rounded,
+                                  color: Color(0xFF00885d),
+                                  size: 22,
+                                ),
+                                onPressed: () => _restoreFromPath(file.path),
+                                tooltip: 'Restore',
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.red.shade300,
+                                  size: 22,
+                                ),
+                                onPressed: () => _deleteBackupFile(file),
+                                tooltip: 'Delete',
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                ],
+              ),
             ),
     );
   }

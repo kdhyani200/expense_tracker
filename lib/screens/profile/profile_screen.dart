@@ -44,183 +44,190 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // ── Profile header card ───────────────────────────────────────
-            Container(
-              width: double.infinity,
-              color: Theme.of(context).scaffoldBackgroundColor,
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
-              child: Column(
-                children: [
-                  GestureDetector(
-                    onTap: () async {
-                      await showModalBottomSheet(
-                        backgroundColor: Colors.transparent,
-                        isScrollControlled: true,
-                        context: context,
-                        builder: (_) => AddProfilePictureScreen(
-                          firstName: user?.firstName ?? '',
-                          lastName: user?.lastName ?? '',
-                          initialImage: photo,
-                          onPickImage: (_) {},
-                        ),
-                      );
-                      ref.read(userProfileProvider.notifier).loadUser();
-                    },
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: imageSize,
-                          height: imageSize,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Theme.of(context).shadowColor,
+      body: SafeArea(
+        bottom: true,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // ── Profile header card ───────────────────────────────────────
+              Container(
+                width: double.infinity,
+                color: Theme.of(context).scaffoldBackgroundColor,
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      onTap: () async {
+                        await showModalBottomSheet(
+                          backgroundColor: Colors.transparent,
+                          isScrollControlled: true,
+                          context: context,
+                          builder: (_) => AddProfilePictureScreen(
+                            firstName: user?.firstName ?? '',
+                            lastName: user?.lastName ?? '',
+                            initialImage: photo,
+                            onPickImage: (_) {},
                           ),
-                          clipBehavior: Clip.antiAlias,
-                          child: photo != null && photo.existsSync()
-                              ? Image.file(photo, fit: BoxFit.cover)
-                              : Icon(
-                                  Icons.person,
-                                  size: imageSize * 0.4,
-                                  color: Colors.grey.shade400,
-                                ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            width: 28,
-                            height: 28,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF00885d),
+                        );
+                        ref.read(userProfileProvider.notifier).loadUser();
+                      },
+                      child: Stack(
+                        children: [
+                          Container(
+                            width: imageSize,
+                            height: imageSize,
+                            decoration: BoxDecoration(
                               shape: BoxShape.circle,
+                              color: Theme.of(context).shadowColor,
                             ),
-                            child: const Icon(
-                              Icons.edit,
-                              color: Colors.white,
-                              size: 14,
+                            clipBehavior: Clip.antiAlias,
+                            child: photo != null && photo.existsSync()
+                                ? Image.file(photo, fit: BoxFit.cover)
+                                : Icon(
+                                    Icons.person,
+                                    size: imageSize * 0.4,
+                                    color: Colors.grey.shade400,
+                                  ),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              width: 28,
+                              height: 28,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF00885d),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.edit,
+                                color: Colors.white,
+                                size: 14,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    displayName,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                    const SizedBox(height: 12),
+                    Text(
+                      displayName,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${transactions.length} transactions',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // ── Preferences ───────────────────────────────────────────────
+              _Section(
+                title: 'Preferences',
+                children: [
+                  _SettingTile(
+                    icon: Icons.brightness_6_outlined,
+                    iconColor: Colors.indigo,
+                    title: 'UI Mode',
+                    subtitle: _themeName(prefs.themeMode),
+                    onTap: () =>
+                        _showThemePicker(context, ref, prefs.themeMode),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${transactions.length} transactions',
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                  _SettingTile(
+                    icon: Icons.currency_exchange,
+                    iconColor: Colors.teal,
+                    title: 'Currency',
+                    subtitle: '${prefs.currencyCode} (${prefs.currencySymbol})',
+                    onTap: () => _showCurrencyPicker(context, ref),
+                  ),
+                  _SettingTile(
+                    icon: Icons.pin_outlined,
+                    iconColor: Colors.orange,
+                    title: 'Decimal Places',
+                    subtitle: prefs.decimalPlaces.toString(),
+                    onTap: () =>
+                        _showDecimalPicker(context, ref, prefs.decimalPlaces),
                   ),
                 ],
               ),
-            ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // ── Preferences ───────────────────────────────────────────────
-            _Section(
-              title: 'Preferences',
-              children: [
-                _SettingTile(
-                  icon: Icons.brightness_6_outlined,
-                  iconColor: Colors.indigo,
-                  title: 'UI Mode',
-                  subtitle: _themeName(prefs.themeMode),
-                  onTap: () => _showThemePicker(context, ref, prefs.themeMode),
-                ),
-                _SettingTile(
-                  icon: Icons.currency_exchange,
-                  iconColor: Colors.teal,
-                  title: 'Currency',
-                  subtitle: '${prefs.currencyCode} (${prefs.currencySymbol})',
-                  onTap: () => _showCurrencyPicker(context, ref),
-                ),
-                _SettingTile(
-                  icon: Icons.pin_outlined,
-                  iconColor: Colors.orange,
-                  title: 'Decimal Places',
-                  subtitle: prefs.decimalPlaces.toString(),
-                  onTap: () =>
-                      _showDecimalPicker(context, ref, prefs.decimalPlaces),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // ── Data ──────────────────────────────────────────────────────
-            _Section(
-              title: 'Data',
-              children: [
-                _SettingTile(
-                  icon: Icons.upload_file_outlined,
-                  iconColor: Colors.blue,
-                  title: 'Export to CSV',
-                  subtitle: 'Save all transactions as a spreadsheet',
-                  onTap: () => _exportCsv(context),
-                ),
-                _SettingTile(
-                  icon: Icons.cloud_done_outlined,
-                  iconColor: const Color(0xFF00885d),
-                  title: 'Backup & Restore',
-                  subtitle: 'Save or restore your data (.mbak)',
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const BackupRestoreScreen(),
+              // ── Data ──────────────────────────────────────────────────────
+              _Section(
+                title: 'Data',
+                children: [
+                  _SettingTile(
+                    icon: Icons.upload_file_outlined,
+                    iconColor: Colors.blue,
+                    title: 'Export to CSV',
+                    subtitle: 'Save all transactions as a spreadsheet',
+                    onTap: () => _exportCsv(context),
+                  ),
+                  _SettingTile(
+                    icon: Icons.cloud_done_outlined,
+                    iconColor: const Color(0xFF00885d),
+                    title: 'Backup & Restore',
+                    subtitle: 'Save or restore your data (.mbak)',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const BackupRestoreScreen(),
+                      ),
                     ),
                   ),
-                ),
-                _SettingTile(
-                  icon: Icons.delete_outline_rounded,
-                  iconColor: Colors.red,
-                  title: 'Delete & Reset',
-                  subtitle: 'Remove records, wallets or reset the app',
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const DeleteResetScreen(),
+                  _SettingTile(
+                    icon: Icons.delete_outline_rounded,
+                    iconColor: Colors.red,
+                    title: 'Delete & Reset',
+                    subtitle: 'Remove records, wallets or reset the app',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const DeleteResetScreen(),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // ── App info ──────────────────────────────────────────────────
-            _Section(
-              title: 'App',
-              children: [
-                _SettingTile(
-                  icon: Icons.privacy_tip_outlined,
-                  iconColor: Colors.blueGrey,
-                  title: 'Privacy Policy',
-                  subtitle: 'How we handle your data',
-                  onTap: () => _showPrivacyPolicy(context),
-                ),
-                _SettingTile(
-                  icon: Icons.info_outline,
-                  iconColor: Colors.grey,
-                  title: 'Version',
-                  subtitle: '1.0.0',
-                  onTap: () {},
-                  showChevron: false,
-                ),
-              ],
-            ),
+              // ── App info ──────────────────────────────────────────────────
+              _Section(
+                title: 'App',
+                children: [
+                  _SettingTile(
+                    icon: Icons.privacy_tip_outlined,
+                    iconColor: Colors.blueGrey,
+                    title: 'Privacy Policy',
+                    subtitle: 'How we handle your data',
+                    onTap: () => _showPrivacyPolicy(context),
+                  ),
+                  _SettingTile(
+                    icon: Icons.info_outline,
+                    iconColor: Colors.grey,
+                    title: 'Version',
+                    subtitle: '1.0.0',
+                    onTap: () {},
+                    showChevron: false,
+                  ),
+                ],
+              ),
 
-            const SizedBox(height: 32),
-          ],
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );

@@ -49,35 +49,38 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
         ),
       ),
 
-      body: Column(
-        children: [
-          const SizedBox(height: 12),
-          _buildSwitcher(),
-          const SizedBox(height: 12),
-          _buildChart(transactions, prefs),
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: const Text(
-                "All Transactions",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      body: SafeArea(
+        bottom: true,
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            _buildSwitcher(),
+            const SizedBox(height: 12),
+            _buildChart(transactions, prefs),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  "All Transactions",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: transactions.isEmpty
-                ? _buildEmptyState()
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: transactions.length,
-                    itemBuilder: (_, i) =>
-                        TransactionItemCard(transaction: transactions[i]),
-                  ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Expanded(
+              child: transactions.isEmpty
+                  ? _buildEmptyState()
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: transactions.length,
+                      itemBuilder: (_, i) =>
+                          TransactionItemCard(transaction: transactions[i]),
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }

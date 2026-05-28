@@ -27,91 +27,94 @@ class DeleteResetScreen extends ConsumerWidget {
           ),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          const SizedBox(height: 8),
-          _buildWarningBanner(),
-          const SizedBox(height: 24),
+      body: SafeArea(
+        bottom: true,
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            const SizedBox(height: 8),
+            _buildWarningBanner(),
+            const SizedBox(height: 24),
 
-          _ActionTile(
-            icon: Icons.receipt_long_outlined,
-            iconColor: Colors.orange,
-            title: 'Delete All Records',
-            description:
-                'Removes all transactions but keeps your wallets and categories intact. Wallet balances will be reset to zero.',
-            buttonLabel: 'Delete Records',
-            buttonColor: Colors.orange,
-            onTap: () => _confirm(
-              context: context,
-              ref: ref,
-              title: 'Delete All Records?',
-              body:
-                  'This will permanently delete all transactions and reset wallet balances to ₹0. Wallets and categories will remain.',
-              action: () async {
-                await DataService.deleteAllRecords();
-                ref.read(transactionsProvider.notifier).loadTransactions();
-                ref.read(walletsProvider.notifier).loadWallets();
-              },
-              successMessage: 'All records deleted.',
+            _ActionTile(
+              icon: Icons.receipt_long_outlined,
+              iconColor: Colors.orange,
+              title: 'Delete All Records',
+              description:
+                  'Removes all transactions but keeps your wallets and categories intact. Wallet balances will be reset to zero.',
+              buttonLabel: 'Delete Records',
+              buttonColor: Colors.orange,
+              onTap: () => _confirm(
+                context: context,
+                ref: ref,
+                title: 'Delete All Records?',
+                body:
+                    'This will permanently delete all transactions and reset wallet balances to ₹0. Wallets and categories will remain.',
+                action: () async {
+                  await DataService.deleteAllRecords();
+                  ref.read(transactionsProvider.notifier).loadTransactions();
+                  ref.read(walletsProvider.notifier).loadWallets();
+                },
+                successMessage: 'All records deleted.',
+              ),
             ),
-          ),
 
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-          _ActionTile(
-            icon: Icons.delete_sweep_outlined,
-            iconColor: Colors.red,
-            title: 'Delete All',
-            description:
-                'Removes every transaction, wallet, and category. Your profile is kept.',
-            buttonLabel: 'Delete Everything',
-            buttonColor: Colors.red,
-            onTap: () => _confirm(
-              context: context,
-              ref: ref,
-              title: 'Delete Everything?',
-              body:
-                  'This permanently deletes all transactions, wallets, and categories. Your profile info is not affected.',
-              action: () async {
-                await DataService.deleteEverything();
-                ref.read(transactionsProvider.notifier).loadTransactions();
-                ref.read(walletsProvider.notifier).loadWallets();
-                ref.read(categoryProvider.notifier).loadCategories();
-              },
-              successMessage: 'Everything deleted.',
+            _ActionTile(
+              icon: Icons.delete_sweep_outlined,
+              iconColor: Colors.red,
+              title: 'Delete All',
+              description:
+                  'Removes every transaction, wallet, and category. Your profile is kept.',
+              buttonLabel: 'Delete Everything',
+              buttonColor: Colors.red,
+              onTap: () => _confirm(
+                context: context,
+                ref: ref,
+                title: 'Delete Everything?',
+                body:
+                    'This permanently deletes all transactions, wallets, and categories. Your profile info is not affected.',
+                action: () async {
+                  await DataService.deleteEverything();
+                  ref.read(transactionsProvider.notifier).loadTransactions();
+                  ref.read(walletsProvider.notifier).loadWallets();
+                  ref.read(categoryProvider.notifier).loadCategories();
+                },
+                successMessage: 'Everything deleted.',
+              ),
             ),
-          ),
 
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-          _ActionTile(
-            icon: Icons.restore_outlined,
-            iconColor: Colors.deepPurple,
-            title: 'Reset App',
-            description:
-                'Returns the app to its initial state. Deletes everything including your profile. You will be taken back to the onboarding screen.',
-            buttonLabel: 'Reset App',
-            buttonColor: Colors.deepPurple,
-            onTap: () => _confirm(
-              context: context,
-              ref: ref,
-              title: 'Reset App?',
-              body:
-                  'This will delete everything — records, wallets, categories, and your profile. The app will restart to the initial setup.',
-              action: () async {
-                await DataService.resetApp();
+            _ActionTile(
+              icon: Icons.restore_outlined,
+              iconColor: Colors.deepPurple,
+              title: 'Reset App',
+              description:
+                  'Returns the app to its initial state. Deletes everything including your profile. You will be taken back to the onboarding screen.',
+              buttonLabel: 'Reset App',
+              buttonColor: Colors.deepPurple,
+              onTap: () => _confirm(
+                context: context,
+                ref: ref,
+                title: 'Reset App?',
+                body:
+                    'This will delete everything — records, wallets, categories, and your profile. The app will restart to the initial setup.',
+                action: () async {
+                  await DataService.resetApp();
 
-                ref.read(userProfileProvider.notifier).loadUser();
-                ref.read(transactionsProvider.notifier).loadTransactions();
-                ref.read(walletsProvider.notifier).loadWallets();
-                ref.read(categoryProvider.notifier).loadCategories();
-              },
-              successMessage: 'App reset.',
-              navigateToOnboarding: true,
+                  ref.read(userProfileProvider.notifier).loadUser();
+                  ref.read(transactionsProvider.notifier).loadTransactions();
+                  ref.read(walletsProvider.notifier).loadWallets();
+                  ref.read(categoryProvider.notifier).loadCategories();
+                },
+                successMessage: 'App reset.',
+                navigateToOnboarding: true,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

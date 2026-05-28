@@ -35,6 +35,7 @@ class WalletScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
+        bottom: true,
         child: Column(
           children: [
             SizedBox(height: screenHeight * 0.08),

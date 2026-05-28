@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-
 import '../../models/transaction_model.dart';
 import '../../providers/transactions_providers.dart';
 import '../../providers/category_provider.dart';
@@ -11,8 +10,6 @@ import '../../utils/amount_formatter.dart';
 import '../../utils/snackbar_util.dart';
 
 class AddScreen extends ConsumerStatefulWidget {
-  /// Pass an existing transaction to open in edit / update mode.
-  /// Leave null to open in add mode.
   final TransactionModel? existing;
 
   const AddScreen({super.key, this.existing});
@@ -29,7 +26,6 @@ class _AddScreenState extends ConsumerState<AddScreen> {
   late String? _selectedCategory;
 
   late final TextEditingController _dateController;
-  late final TextEditingController _timeController;
   late final TextEditingController _amountController;
   late final TextEditingController _descriptionController;
 
@@ -43,17 +39,13 @@ class _AddScreenState extends ConsumerState<AddScreen> {
     final tx = widget.existing;
 
     if (tx != null) {
-      // ── Edit mode: pre-fill from existing transaction ─────────────────────
       _selectedType = tx.type == TransactionType.income ? 'Income' : 'Expense';
+
       _selectedWalletId = tx.walletId;
       _selectedCategory = tx.category;
 
       _dateController = TextEditingController(
-        text: DateFormat('dd/MM/yyyy').format(tx.date),
-      );
-
-      _timeController = TextEditingController(
-        text: DateFormat('hh:mm a').format(tx.date),
+        text: DateFormat('dd/MM/yyyy hh:mm a').format(tx.date),
       );
 
       _amountController = TextEditingController(
@@ -62,19 +54,12 @@ class _AddScreenState extends ConsumerState<AddScreen> {
 
       _descriptionController = TextEditingController(text: tx.note);
     } else {
-      // ── Add mode: start blank ─────────────────────────────────────────────
       _selectedType = 'Expense';
       _selectedWalletId = null;
       _selectedCategory = null;
 
-      final now = DateTime.now();
-
       _dateController = TextEditingController(
-        text: DateFormat('dd/MM/yyyy').format(now),
-      );
-
-      _timeController = TextEditingController(
-        text: DateFormat('hh:mm a').format(now),
+        text: DateFormat('dd/MM/yyyy hh:mm a').format(DateTime.now()),
       );
 
       _amountController = TextEditingController();
@@ -85,13 +70,10 @@ class _AddScreenState extends ConsumerState<AddScreen> {
   @override
   void dispose() {
     _dateController.dispose();
-    _timeController.dispose();
     _amountController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
 
   InputDecoration _buildInputDecoration(String hint) {
     return InputDecoration(
@@ -164,8 +146,6 @@ class _AddScreenState extends ConsumerState<AddScreen> {
     );
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     final wallets = ref.watch(walletsProvider);
@@ -182,7 +162,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
         ),
         child: Scaffold(
           backgroundColor: Colors.transparent,
@@ -198,243 +178,232 @@ class _AddScreenState extends ConsumerState<AddScreen> {
               ),
             ),
           ),
-          body: GestureDetector(
-            onTap: () => FocusScope.of(context).unfocus(),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  // ── Scrollable fields ──────────────────────────────────
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 20),
+          body: SafeArea(
+            bottom: true,
+            child: GestureDetector(
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 20),
 
-                          // Type
-                          _buildFieldLabel("Type", false, labelStyle),
-                          _buildDropdown<String>(
-                            value: _selectedType,
-                            hint: "Select Type",
-                            items: _types
-                                .map(
-                                  (t) => DropdownMenuItem(
-                                    value: t,
-                                    child: Text(
-                                      t,
-                                      style: TextStyle(
-                                        color: Theme.of(context).primaryColor,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (val) {
-                              if (val == null) return;
-                              setState(() {
-                                _selectedType = val;
-                                _selectedCategory = null;
-                              });
-                            },
-                          ),
+                            _buildFieldLabel("Type", false, labelStyle),
 
-                          const SizedBox(height: 20),
-
-                          // Wallet
-                          _buildFieldLabel("Wallet", false, labelStyle),
-                          _buildDropdown<String>(
-                            value: _selectedWalletId,
-                            hint: "Select Wallet",
-                            items: wallets
-                                .map(
-                                  (w) => DropdownMenuItem(
-                                    value: w.id,
-                                    child: Text(
-                                      w.name,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        color: Theme.of(context).primaryColor,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (val) =>
-                                setState(() => _selectedWalletId = val),
-                            validator: (val) =>
-                                val == null ? "Please select a wallet" : null,
-                          ),
-
-                          // Category (income + expense)
-                          const SizedBox(height: 20),
-                          _buildFieldLabel("Category", false, labelStyle),
-                          Consumer(
-                            builder: (context, ref, _) {
-                              final cats = ref
-                                  .watch(categoryProvider.notifier)
-                                  .namesFor(_selectedType.toLowerCase());
-
-                              return _buildDropdown<String>(
-                                value: cats.contains(_selectedCategory)
-                                    ? _selectedCategory
-                                    : null,
-                                hint: "Select Category",
-                                items: cats
-                                    .map(
-                                      (c) => DropdownMenuItem(
-                                        value: c,
-                                        child: Text(
-                                          c,
-                                          style: TextStyle(
-                                            color: Theme.of(
-                                              context,
-                                            ).primaryColor,
-                                          ),
+                            _buildDropdown<String>(
+                              value: _selectedType,
+                              hint: "Select Type",
+                              items: _types
+                                  .map(
+                                    (t) => DropdownMenuItem(
+                                      value: t,
+                                      child: Text(
+                                        t,
+                                        style: TextStyle(
+                                          color: Theme.of(context).primaryColor,
                                         ),
                                       ),
-                                    )
-                                    .toList(),
-                                onChanged: (val) =>
-                                    setState(() => _selectedCategory = val),
-                                validator: (val) =>
-                                    val == null ? "Select a category" : null,
-                              );
-                            },
-                          ),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (val) {
+                                if (val == null) return;
 
-                          const SizedBox(height: 20),
-
-                          // Date
-                          _buildFieldLabel("Date", false, labelStyle),
-                          TextFormField(
-                            controller: _dateController,
-                            readOnly: true,
-                            decoration: _buildInputDecoration("Select Date")
-                                .copyWith(
-                                  suffixIcon: const Icon(
-                                    Icons.calendar_month,
-                                    size: 20,
-                                  ),
-                                ),
-                            onTap: () async {
-                              final DateTime? picked = await showDatePicker(
-                                context: context,
-                                initialDate: _dateController.text.isEmpty
-                                    ? DateTime.now()
-                                    : DateFormat(
-                                        'dd/MM/yyyy',
-                                      ).parse(_dateController.text),
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime.now(),
-                              );
-
-                              if (picked != null) {
                                 setState(() {
-                                  _dateController.text = DateFormat(
-                                    'dd/MM/yyyy',
-                                  ).format(picked);
+                                  _selectedType = val;
+                                  _selectedCategory = null;
                                 });
-                              }
-                            },
-                            validator: (val) => val == null || val.isEmpty
-                                ? "Please select a date"
-                                : null,
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Time
-                          _buildFieldLabel("Time", false, labelStyle),
-
-                          TextFormField(
-                            controller: _timeController,
-                            readOnly: true,
-                            decoration: _buildInputDecoration("Select Time")
-                                .copyWith(
-                                  suffixIcon: const Icon(
-                                    Icons.access_time,
-                                    size: 20,
-                                  ),
-                                ),
-                            onTap: () async {
-                              final picked = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.now(),
-                              );
-
-                              if (picked != null) {
-                                final now = DateTime.now();
-
-                                final dt = DateTime(
-                                  now.year,
-                                  now.month,
-                                  now.day,
-                                  picked.hour,
-                                  picked.minute,
-                                );
-
-                                _timeController.text = DateFormat(
-                                  'hh:mm a',
-                                ).format(dt);
-                              }
-                            },
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Amount
-                          _buildFieldLabel("Amount", false, labelStyle),
-                          TextFormField(
-                            controller: _amountController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
+                              },
                             ),
-                            decoration: _buildInputDecoration("0.00"),
-                            validator: (val) {
-                              if (val == null || val.isEmpty) {
-                                return "Enter an amount";
-                              }
 
-                              final amount = double.tryParse(val);
+                            const SizedBox(height: 20),
 
-                              if (amount == null) {
-                                return "Enter a valid number";
-                              }
+                            _buildFieldLabel("Wallet", false, labelStyle),
 
-                              if (amount <= 0) {
-                                return "Amount must be greater than zero";
-                              }
+                            _buildDropdown<String>(
+                              value: _selectedWalletId,
+                              hint: "Select Wallet",
+                              items: wallets
+                                  .map(
+                                    (w) => DropdownMenuItem(
+                                      value: w.id,
+                                      child: Text(
+                                        w.name,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: Theme.of(context).primaryColor,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (val) =>
+                                  setState(() => _selectedWalletId = val),
+                              validator: (val) =>
+                                  val == null ? "Please select a wallet" : null,
+                            ),
 
-                              return null;
-                            },
-                          ),
+                            const SizedBox(height: 20),
 
-                          const SizedBox(height: 20),
+                            _buildFieldLabel("Category", false, labelStyle),
 
-                          // Description
-                          _buildFieldLabel("Description", true, labelStyle),
-                          TextFormField(
-                            controller: _descriptionController,
-                            maxLines: 3,
-                            decoration: _buildInputDecoration("Add a note..."),
-                          ),
+                            Consumer(
+                              builder: (context, ref, _) {
+                                final cats = ref
+                                    .watch(categoryProvider.notifier)
+                                    .namesFor(_selectedType.toLowerCase());
 
-                          const SizedBox(height: 40),
-                        ],
+                                return _buildDropdown<String>(
+                                  value: cats.contains(_selectedCategory)
+                                      ? _selectedCategory
+                                      : null,
+                                  hint: "Select Category",
+                                  items: cats
+                                      .map(
+                                        (c) => DropdownMenuItem(
+                                          value: c,
+                                          child: Text(
+                                            c,
+                                            style: TextStyle(
+                                              color: Theme.of(
+                                                context,
+                                              ).primaryColor,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
+                                  onChanged: (val) =>
+                                      setState(() => _selectedCategory = val),
+                                  validator: (val) =>
+                                      val == null ? "Select a category" : null,
+                                );
+                              },
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            _buildFieldLabel("Date", false, labelStyle),
+
+                            TextFormField(
+                              controller: _dateController,
+                              readOnly: true,
+                              decoration: _buildInputDecoration("Select Date")
+                                  .copyWith(
+                                    suffixIcon: const Icon(
+                                      Icons.calendar_month,
+                                      size: 20,
+                                    ),
+                                  ),
+                              onTap: () async {
+                                DateTime initialDate = DateTime.now();
+
+                                if (_dateController.text.isNotEmpty) {
+                                  initialDate = DateFormat(
+                                    'dd/MM/yyyy hh:mm a',
+                                  ).parse(_dateController.text);
+                                }
+
+                                final DateTime? pickedDate =
+                                    await showDatePicker(
+                                      context: context,
+                                      initialDate: initialDate,
+                                      firstDate: DateTime(2000),
+                                      lastDate: DateTime.now(),
+                                    );
+
+                                if (pickedDate != null) {
+                                  final TimeOfDay pickedTime =
+                                      await showTimePicker(
+                                        context: context,
+                                        initialTime: TimeOfDay.fromDateTime(
+                                          initialDate,
+                                        ),
+                                      ) ??
+                                      TimeOfDay.now();
+
+                                  final finalDateTime = DateTime(
+                                    pickedDate.year,
+                                    pickedDate.month,
+                                    pickedDate.day,
+                                    pickedTime.hour,
+                                    pickedTime.minute,
+                                  );
+
+                                  setState(() {
+                                    _dateController.text = DateFormat(
+                                      'dd/MM/yyyy hh:mm a',
+                                    ).format(finalDateTime);
+                                  });
+                                }
+                              },
+                              validator: (val) => val == null || val.isEmpty
+                                  ? "Please select a date"
+                                  : null,
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            _buildFieldLabel("Amount", false, labelStyle),
+
+                            TextFormField(
+                              controller: _amountController,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: _buildInputDecoration("0.00"),
+                              validator: (val) {
+                                if (val == null || val.isEmpty) {
+                                  return "Enter an amount";
+                                }
+
+                                final amount = double.tryParse(val);
+
+                                if (amount == null) {
+                                  return "Enter a valid number";
+                                }
+
+                                if (amount <= 0) {
+                                  return "Amount must be greater than zero";
+                                }
+
+                                return null;
+                              },
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            _buildFieldLabel("Description", true, labelStyle),
+
+                            TextFormField(
+                              controller: _descriptionController,
+                              maxLines: 3,
+                              decoration: _buildInputDecoration(
+                                "Add a note...",
+                              ),
+                            ),
+
+                            const SizedBox(height: 40),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
 
-                  // ── Bottom action buttons ──────────────────────────────
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                    child: _isEditMode
-                        ? _buildEditButtons()
-                        : _buildSubmitButton(),
-                  ),
-                ],
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      child: _isEditMode
+                          ? _buildEditButtons()
+                          : _buildSubmitButton(),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -491,9 +460,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
             ),
           ),
         ),
-
         const SizedBox(width: 12),
-
         Expanded(
           child: SizedBox(
             height: 55,
@@ -525,6 +492,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final wallets = ref.read(walletsProvider);
+
     final selectedWallet = wallets.firstWhere((w) => w.id == _selectedWalletId);
 
     final amount = double.parse(_amountController.text.trim());
@@ -564,21 +532,9 @@ class _AddScreenState extends ConsumerState<AddScreen> {
       }
     }
 
-    DateTime parsedDate = DateTime.now();
-
-    if (_dateController.text.isNotEmpty) {
-      final date = DateFormat('dd/MM/yyyy').parse(_dateController.text);
-
-      final time = DateFormat('hh:mm a').parse(_timeController.text);
-
-      parsedDate = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        time.hour,
-        time.minute,
-      );
-    }
+    final DateTime parsedDate = _dateController.text.isNotEmpty
+        ? DateFormat('dd/MM/yyyy hh:mm a').parse(_dateController.text)
+        : DateTime.now();
 
     final transaction = TransactionModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -607,6 +563,135 @@ class _AddScreenState extends ConsumerState<AddScreen> {
     }
   }
 
-  Future<void> _updateTransaction() async {}
-  Future<void> _confirmDelete() async {}
+  Future<void> _updateTransaction() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final old = widget.existing!;
+
+    final wallets = ref.read(walletsProvider);
+
+    final selectedWallet = wallets.firstWhere((w) => w.id == _selectedWalletId);
+
+    final newAmount = double.parse(_amountController.text.trim());
+
+    final newType = _selectedType == 'Income'
+        ? TransactionType.income
+        : TransactionType.expense;
+
+    final oldReverseType = old.type == TransactionType.income
+        ? TransactionType.expense
+        : TransactionType.income;
+
+    await ref
+        .read(walletsProvider.notifier)
+        .updateWalletBalance(
+          walletId: old.walletId,
+          amount: old.amount,
+          type: oldReverseType,
+        );
+
+    final walletsAfterReversal = ref.read(walletsProvider);
+
+    final walletAfterReversal = walletsAfterReversal.firstWhere(
+      (w) => w.id == selectedWallet.id,
+    );
+
+    if (newType == TransactionType.expense &&
+        walletAfterReversal.balance < newAmount) {
+      await ref
+          .read(walletsProvider.notifier)
+          .updateWalletBalance(
+            walletId: old.walletId,
+            amount: old.amount,
+            type: old.type,
+          );
+
+      if (mounted) {
+        SnackBarUtils.showSnackBar(
+          context,
+          "Insufficient balance in ${selectedWallet.name}!",
+          isError: true,
+        );
+      }
+
+      return;
+    }
+
+    final DateTime parsedDate = _dateController.text.isNotEmpty
+        ? DateFormat('dd/MM/yyyy hh:mm a').parse(_dateController.text)
+        : DateTime.now();
+
+    final updated = TransactionModel(
+      id: old.id,
+      walletId: selectedWallet.id,
+      amount: newAmount,
+      title: _selectedCategory ?? 'Other',
+      category: _selectedCategory ?? 'Other',
+      type: newType,
+      date: parsedDate,
+      note: _descriptionController.text.trim(),
+    );
+
+    await ref.read(transactionsProvider.notifier).updateTransaction(updated);
+
+    if (mounted) {
+      Navigator.pop(context);
+      SnackBarUtils.showSnackBar(context, "Transaction Updated!");
+    }
+  }
+
+  Future<void> _confirmDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Delete Transaction"),
+        content: const Text(
+          "Are you sure? This will reverse the balance on the associated wallet.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    final old = widget.existing!;
+
+    final reverseType = old.type == TransactionType.income
+        ? TransactionType.expense
+        : TransactionType.income;
+
+    try {
+      await ref
+          .read(walletsProvider.notifier)
+          .updateWalletBalance(
+            walletId: old.walletId,
+            amount: old.amount,
+            type: reverseType,
+          );
+
+      await ref.read(transactionsProvider.notifier).deleteTransaction(old.id);
+
+      if (mounted) {
+        Navigator.pop(context);
+        SnackBarUtils.showSnackBar(context, "Transaction deleted.");
+      }
+    } catch (e) {
+      if (mounted) {
+        SnackBarUtils.showSnackBar(
+          context,
+          "Something went wrong. Please try again.",
+          isError: true,
+        );
+      }
+    }
+  }
 }

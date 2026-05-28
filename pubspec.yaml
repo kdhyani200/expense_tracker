@@ -54,15 +54,15 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#00885d"
-  image: assets/final_light_splash.png
+  image: assets/final_logo.png
   color_dark: "#0F172A"
-  image_dark: assets/final_dark_splash.png
+  image_dark: assets/final_logo.png
   fullscreen: false
   android_12:
     color: "#00885d"
-    image: assets/final_light_splash.png
+    image: assets/final_logo.png
     color_dark: "#0F172A"
-    image_dark: assets/final_dark_splash.png
+    image_dark: assets/final_logo.png
     fullscreen: false
 
 flutter:
@@ -70,5 +70,4 @@ flutter:
   assets:
     - assets/onboard_image.webp
     - assets/expense_light_logo.png
-    - assets/final_light_splash.png
-    - assets/final_dark_splash.png
+    - assets/final_logo.png

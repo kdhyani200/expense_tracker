@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/user_model.dart';
@@ -16,6 +17,7 @@ class _SetupProfileScreenState extends ConsumerState<SetupProfileScreen> {
   final _firstController = TextEditingController();
   final _lastController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
   bool _loading = false;
 
   @override
@@ -27,6 +29,7 @@ class _SetupProfileScreenState extends ConsumerState<SetupProfileScreen> {
 
   Future<void> _completeSetup() async {
     if (!_formKey.currentState!.validate()) return;
+
     setState(() => _loading = true);
 
     final user = UserModel(
@@ -49,217 +52,241 @@ class _SetupProfileScreenState extends ConsumerState<SetupProfileScreen> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SingleChildScrollView(
-        child: SizedBox(
-          height: size.height,
-          child: Column(
-            children: [
-              // ── Top illustration panel ────────────────────────────────────
-              Stack(
-                children: [
-                  Container(
-                    height: size.height * 0.42,
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF00787a), Color(0xFF10b981)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(40),
-                        bottomRight: Radius.circular(40),
-                      ),
-                    ),
-                  ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        extendBodyBehindAppBar: true,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
-                  // Decorative circles
-                  Positioned(
-                    top: -30,
-                    right: -30,
-                    child: Container(
-                      width: 160,
-                      height: 160,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.06),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 40,
-                    left: -20,
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.05),
-                      ),
-                    ),
-                  ),
-
-                  // Content inside the panel
-                  Positioned.fill(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 40),
-
-                        // Logo / avatar circle
-                        Container(
-                          width: 90,
-                          height: 90,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.4),
-                              width: 2,
-                            ),
-                          ),
-                          child: ClipOval(
-                            child: Image.asset(
-                              'assets/expense_light_logo.png',
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Icon(
-                                Icons.account_balance_wallet_rounded,
-                                color: Colors.white,
-                                size: 44,
+        body: SafeArea(
+          top: false,
+          child: GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: size.height),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      // ── Top illustration panel ───────────────────────────
+                      Stack(
+                        children: [
+                          Container(
+                            height: size.height * 0.44,
+                            width: double.infinity,
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [Color(0xFF00787a), Color(0xFF10b981)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.only(
+                                bottomLeft: Radius.circular(40),
+                                bottomRight: Radius.circular(40),
                               ),
                             ),
                           ),
-                        ),
 
-                        const SizedBox(height: 20),
-
-                        const Text(
-                          'Track Kar',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Smart expense tracking, simplified.',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(.8),
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              // ── Form card ─────────────────────────────────────────────────
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Let's get started!",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).primaryColor,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Tell us your name to personalise your experience.',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-
-                        const SizedBox(height: 28),
-
-                        // First name
-                        _buildField(
-                          controller: _firstController,
-                          hint: 'First name',
-                          icon: Icons.person_outline_rounded,
-                          validator: (v) => (v == null || v.trim().isEmpty)
-                              ? 'Please enter your first name'
-                              : null,
-                        ),
-
-                        const SizedBox(height: 14),
-
-                        // Last name
-                        _buildField(
-                          controller: _lastController,
-                          hint: 'Last name (optional)',
-                          icon: Icons.person_outline_rounded,
-                        ),
-
-                        const Spacer(),
-
-                        // Get started button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: ElevatedButton(
-                            onPressed: _loading ? null : _completeSetup,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF00885d),
-                              disabledBackgroundColor: const Color(
-                                0xFF00885d,
-                              ).withOpacity(0.6),
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                          // Decorative circles
+                          Positioned(
+                            top: -30,
+                            right: -30,
+                            child: Container(
+                              width: 160,
+                              height: 160,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withOpacity(0.06),
                               ),
                             ),
-                            child: _loading
-                                ? const SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2.5,
-                                    ),
-                                  )
-                                : const Text(
-                                    'Get Started',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                          ),
+
+                          Positioned(
+                            top: 40,
+                            left: -20,
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withOpacity(0.05),
+                              ),
+                            ),
+                          ),
+
+                          // Content
+                          Positioned.fill(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  height:
+                                      MediaQuery.of(context).padding.top + 20,
+                                ),
+
+                                // Logo
+                                Container(
+                                  width: 90,
+                                  height: 90,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.15),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.4),
+                                      width: 2,
                                     ),
                                   ),
+                                  child: ClipOval(
+                                    child: Image.asset(
+                                      'assets/expense_light_logo.png',
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => const Icon(
+                                        Icons.account_balance_wallet_rounded,
+                                        color: Colors.white,
+                                        size: 44,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(height: 20),
+
+                                const Text(
+                                  'Track Kar',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 6),
+
+                                Text(
+                                  'Smart expense tracking, simplified.',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(.8),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
+                        ],
+                      ),
 
-                        const SizedBox(height: 12),
+                      // ── Form section ────────────────────────────────────
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Let's get started!",
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).primaryColor,
+                                  ),
+                                ),
 
-                        Center(
-                          child: Text(
-                            'Your data stays on your device only.',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey.shade400,
+                                const SizedBox(height: 4),
+
+                                Text(
+                                  'Tell us your name to personalise your experience.',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey.shade500,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 28),
+
+                                // First Name
+                                _buildField(
+                                  controller: _firstController,
+                                  hint: 'First name',
+                                  icon: Icons.person_outline_rounded,
+                                  validator: (v) =>
+                                      (v == null || v.trim().isEmpty)
+                                      ? 'Please enter your first name'
+                                      : null,
+                                ),
+
+                                const SizedBox(height: 14),
+
+                                // Last Name
+                                _buildField(
+                                  controller: _lastController,
+                                  hint: 'Last name (optional)',
+                                  icon: Icons.person_outline_rounded,
+                                ),
+
+                                SizedBox(
+                                  height:
+                                      MediaQuery.of(context).viewInsets.bottom >
+                                          0
+                                      ? 20
+                                      : 0,
+                                ),
+
+                                const Spacer(),
+
+                                // Button
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 56,
+                                  child: ElevatedButton(
+                                    onPressed: _loading ? null : _completeSetup,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF00885d),
+                                      disabledBackgroundColor: const Color(
+                                        0xFF00885d,
+                                      ).withOpacity(0.6),
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                    ),
+                                    child: _loading
+                                        ? const SizedBox(
+                                            width: 22,
+                                            height: 22,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2.5,
+                                            ),
+                                          )
+                                        : const Text(
+                                            'Get Started',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),

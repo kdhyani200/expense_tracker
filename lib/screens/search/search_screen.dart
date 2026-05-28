@@ -73,81 +73,84 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Search bar ──────────────────────────────────────────────
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).canvasColor,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: TextField(
-                controller: _searchController,
-                focusNode: _focusNode,
-                style: TextStyle(color: Theme.of(context).primaryColor),
-                onChanged: (v) => setState(() => _query = v),
-                decoration: InputDecoration(
-                  hintText: "Search by category, note or amount…",
-                  hintStyle: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 14,
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  prefixIcon: const Icon(
-                    Icons.search,
-                    color: Colors.grey,
-                    size: 20,
-                  ),
-                  suffixIcon: _query.isNotEmpty
-                      ? GestureDetector(
-                          onTap: () {
-                            _searchController.clear();
-                            setState(() => _query = '');
-                          },
-                          child: const Icon(
-                            Icons.close,
-                            color: Colors.grey,
-                            size: 18,
-                          ),
-                        )
-                      : null,
+      body: SafeArea(
+        bottom: true,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Search bar ──────────────────────────────────────────────
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).canvasColor,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.grey.shade200),
                 ),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // ── Result count ────────────────────────────────────────────
-            if (_query.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10, left: 2),
-                child: Text(
-                  "${filtered.length} result${filtered.length == 1 ? '' : 's'}",
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                ),
-              ),
-
-            // ── List ────────────────────────────────────────────────────
-            Expanded(
-              child: filtered.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      keyboardDismissBehavior:
-                          ScrollViewKeyboardDismissBehavior.onDrag,
-                      itemCount: filtered.length,
-                      itemBuilder: (_, i) =>
-                          _buildCard(context, filtered[i], fmt),
+                child: TextField(
+                  controller: _searchController,
+                  focusNode: _focusNode,
+                  style: TextStyle(color: Theme.of(context).primaryColor),
+                  onChanged: (v) => setState(() => _query = v),
+                  decoration: InputDecoration(
+                    hintText: "Search by category, note or amount…",
+                    hintStyle: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 14,
                     ),
-            ),
-          ],
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: Colors.grey,
+                      size: 20,
+                    ),
+                    suffixIcon: _query.isNotEmpty
+                        ? GestureDetector(
+                            onTap: () {
+                              _searchController.clear();
+                              setState(() => _query = '');
+                            },
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.grey,
+                              size: 18,
+                            ),
+                          )
+                        : null,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // ── Result count ────────────────────────────────────────────
+              if (_query.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10, left: 2),
+                  child: Text(
+                    "${filtered.length} result${filtered.length == 1 ? '' : 's'}",
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                  ),
+                ),
+
+              // ── List ────────────────────────────────────────────────────
+              Expanded(
+                child: filtered.isEmpty
+                    ? _buildEmptyState()
+                    : ListView.builder(
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        itemCount: filtered.length,
+                        itemBuilder: (_, i) =>
+                            _buildCard(context, filtered[i], fmt),
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );

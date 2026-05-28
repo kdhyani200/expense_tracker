@@ -239,54 +239,59 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
               ),
             ),
           ),
-          body: GestureDetector(
-            onTap: () => FocusScope.of(context).unfocus(),
-            child: Column(
-              children: [
-                // ── Fields ─────────────────────────────────────────────
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 20),
+          body: SafeArea(
+            bottom: true,
+            child: GestureDetector(
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: Column(
+                children: [
+                  // ── Fields ─────────────────────────────────────────────
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 20),
 
-                        const Text(
-                          "Wallet Name",
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: 8),
-                        TextField(
-                          maxLength: 20,
-                          controller: _nameController,
-                          textCapitalization: TextCapitalization.words,
-                          decoration: _buildInputDecoration(
-                            "e.g. Secret Vault",
+                          const Text(
+                            "Wallet Name",
+                            style: TextStyle(fontWeight: FontWeight.w600),
                           ),
-                        ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            maxLength: 20,
+                            controller: _nameController,
+                            textCapitalization: TextCapitalization.words,
+                            decoration: _buildInputDecoration(
+                              "e.g. Secret Vault",
+                            ),
+                          ),
 
-                        const SizedBox(height: 30),
+                          const SizedBox(height: 30),
 
-                        const Text(
-                          "Wallet Image",
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildImagePicker(),
+                          const Text(
+                            "Wallet Image",
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildImagePicker(),
 
-                        const SizedBox(height: 40),
-                      ],
+                          const SizedBox(height: 40),
+                        ],
+                      ),
                     ),
                   ),
-                ),
 
-                // ── Bottom buttons ─────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                  child: _isEditMode ? _buildEditButtons() : _buildAddButton(),
-                ),
-              ],
+                  // ── Bottom buttons ─────────────────────────────────────
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    child: _isEditMode
+                        ? _buildEditButtons()
+                        : _buildAddButton(),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

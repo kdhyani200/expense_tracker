@@ -394,305 +394,316 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Title
-              Text(
-                "New Category",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
+      child: SafeArea(
+        bottom: true,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Title
+                Text(
+                  "New Category",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColor,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // Type toggle
-              Container(
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).canvasColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  children: [
-                    _typeTab('expense', 'Expense', Colors.redAccent),
-                    _typeTab('income', 'Income', const Color(0xFF00885d)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Name
-              Text(
-                "Name",
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).primaryColor,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                maxLength: 20,
-                controller: _nameCtrl,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  hintText: "e.g. Groceries",
-                  hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 12,
-                  ),
-                  filled: true,
-                  fillColor: Theme.of(context).canvasColor,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                      color: Colors.grey.shade300,
-                      width: .8,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF00885d),
-                      width: 1.2,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // ── Color (disabled when image chosen) ───────────────────
-              _sectionLabel("Color"),
-              const SizedBox(height: 8),
-              Opacity(
-                opacity: _usingImage ? 0.35 : 1.0,
-                child: AbsorbPointer(
-                  absorbing: _usingImage,
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: kCategoryColors.map((c) {
-                      final sel = c.value == _selectedColor.value;
-                      return GestureDetector(
-                        onTap: () => setState(() => _selectedColor = c),
-                        child: Container(
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                            color: c,
-                            shape: BoxShape.circle,
-                            border: sel
-                                ? Border.all(color: Colors.black, width: 2.5)
-                                : null,
-                            boxShadow: sel
-                                ? [
-                                    BoxShadow(
-                                      color: c.withOpacity(0.5),
-                                      blurRadius: 6,
-                                    ),
-                                  ]
-                                : null,
-                          ),
-                          child: sel
-                              ? const Icon(
-                                  Icons.check,
-                                  color: Colors.white,
-                                  size: 16,
-                                )
-                              : null,
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // ── Icon grid (disabled when image chosen) ───────────────
-              _sectionLabel("Icon"),
-              const SizedBox(height: 8),
-              Opacity(
-                opacity: _usingImage ? 0.35 : 1.0,
-                child: AbsorbPointer(
-                  absorbing: _usingImage,
-                  child: Container(
-                    height: 180,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).canvasColor,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: GridView.builder(
-                      padding: const EdgeInsets.all(8),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 6,
-                            mainAxisSpacing: 6,
-                            crossAxisSpacing: 6,
-                          ),
-                      itemCount: kCategoryIcons.length,
-                      itemBuilder: (_, i) {
-                        final ic = kCategoryIcons[i];
-                        final sel =
-                            !_usingImage &&
-                            ic.codePoint == _selectedIcon.codePoint;
-                        return GestureDetector(
-                          onTap: () => setState(() {
-                            _selectedIcon = ic;
-                            _galleryImagePath = null;
-                          }),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: sel
-                                  ? _selectedColor.withOpacity(.15)
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
-                              border: sel
-                                  ? Border.all(
-                                      color: _selectedColor,
-                                      width: 1.5,
-                                    )
-                                  : null,
-                            ),
-                            child: Icon(
-                              ic,
-                              size: 22,
-                              color: sel
-                                  ? _selectedColor
-                                  : Colors.grey.shade600,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // ── Gallery row ──────────────────────────────────────────
-              GestureDetector(
-                onTap: _pickFromGallery,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 11,
-                  ),
+                // Type toggle
+                Container(
+                  height: 40,
                   decoration: BoxDecoration(
-                    color: _usingImage
-                        ? const Color(0xFF00885d).withOpacity(.06)
-                        : Theme.of(context).canvasColor,
+                    color: Theme.of(context).canvasColor,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: _usingImage
-                          ? const Color(0xFF00885d).withOpacity(.4)
-                          : Colors.grey.shade300,
-                      width: _usingImage ? 1.2 : .8,
-                    ),
                   ),
                   child: Row(
                     children: [
-                      // Preview thumbnail when image is selected
-                      if (_usingImage)
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: Image.file(
-                            File(_galleryImagePath!),
-                            width: 32,
-                            height: 32,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      else
-                        Icon(
-                          Icons.photo_library_outlined,
-                          color: Colors.grey.shade600,
-                          size: 20,
-                        ),
-                      const SizedBox(width: 10),
-                      Text(
-                        _usingImage ? "Image selected" : "Choose from gallery",
-                        style: TextStyle(
-                          color: _usingImage
-                              ? const Color(0xFF00885d)
-                              : Colors.grey.shade600,
-                          fontSize: 14,
-                          fontWeight: _usingImage
-                              ? FontWeight.w500
-                              : FontWeight.normal,
-                        ),
-                      ),
-                      if (_usingImage) ...[
-                        const Spacer(),
-                        GestureDetector(
-                          onTap: () => setState(() => _galleryImagePath = null),
-                          child: Icon(
-                            Icons.close,
-                            size: 16,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                      ],
+                      _typeTab('expense', 'Expense', Colors.redAccent),
+                      _typeTab('income', 'Income', const Color(0xFF00885d)),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-              // Actions
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.grey.shade300),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 13),
+                // Name
+                Text(
+                  "Name",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  maxLength: 20,
+                  controller: _nameCtrl,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(
+                    hintText: "e.g. Groceries",
+                    hintStyle: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    filled: true,
+                    fillColor: Theme.of(context).canvasColor,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade300,
+                        width: .8,
                       ),
-                      child: Text(
-                        "Cancel",
-                        style: TextStyle(color: Theme.of(context).primaryColor),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF00885d),
+                        width: 1.2,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _save,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00885d),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 13),
+                ),
+                const SizedBox(height: 16),
+
+                // ── Color (disabled when image chosen) ───────────────────
+                _sectionLabel("Color"),
+                const SizedBox(height: 8),
+                Opacity(
+                  opacity: _usingImage ? 0.35 : 1.0,
+                  child: AbsorbPointer(
+                    absorbing: _usingImage,
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: kCategoryColors.map((c) {
+                        final sel = c.value == _selectedColor.value;
+                        return GestureDetector(
+                          onTap: () => setState(() => _selectedColor = c),
+                          child: Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: c,
+                              shape: BoxShape.circle,
+                              border: sel
+                                  ? Border.all(color: Colors.black, width: 2.5)
+                                  : null,
+                              boxShadow: sel
+                                  ? [
+                                      BoxShadow(
+                                        color: c.withOpacity(0.5),
+                                        blurRadius: 6,
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: sel
+                                ? const Icon(
+                                    Icons.check,
+                                    color: Colors.white,
+                                    size: 16,
+                                  )
+                                : null,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // ── Icon grid (disabled when image chosen) ───────────────
+                _sectionLabel("Icon"),
+                const SizedBox(height: 8),
+                Opacity(
+                  opacity: _usingImage ? 0.35 : 1.0,
+                  child: AbsorbPointer(
+                    absorbing: _usingImage,
+                    child: Container(
+                      height: 180,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).canvasColor,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade200),
                       ),
-                      child: const Text(
-                        "Save",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: GridView.builder(
+                        padding: const EdgeInsets.all(8),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 6,
+                              mainAxisSpacing: 6,
+                              crossAxisSpacing: 6,
+                            ),
+                        itemCount: kCategoryIcons.length,
+                        itemBuilder: (_, i) {
+                          final ic = kCategoryIcons[i];
+                          final sel =
+                              !_usingImage &&
+                              ic.codePoint == _selectedIcon.codePoint;
+                          return GestureDetector(
+                            onTap: () => setState(() {
+                              _selectedIcon = ic;
+                              _galleryImagePath = null;
+                            }),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: sel
+                                    ? _selectedColor.withOpacity(.15)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                                border: sel
+                                    ? Border.all(
+                                        color: _selectedColor,
+                                        width: 1.5,
+                                      )
+                                    : null,
+                              ),
+                              child: Icon(
+                                ic,
+                                size: 22,
+                                color: sel
+                                    ? _selectedColor
+                                    : Colors.grey.shade600,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(height: 12),
+
+                // ── Gallery row ──────────────────────────────────────────
+                GestureDetector(
+                  onTap: _pickFromGallery,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 11,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _usingImage
+                          ? const Color(0xFF00885d).withOpacity(.06)
+                          : Theme.of(context).canvasColor,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: _usingImage
+                            ? const Color(0xFF00885d).withOpacity(.4)
+                            : Colors.grey.shade300,
+                        width: _usingImage ? 1.2 : .8,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        // Preview thumbnail when image is selected
+                        if (_usingImage)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: Image.file(
+                              File(_galleryImagePath!),
+                              width: 32,
+                              height: 32,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        else
+                          Icon(
+                            Icons.photo_library_outlined,
+                            color: Colors.grey.shade600,
+                            size: 20,
+                          ),
+                        const SizedBox(width: 10),
+                        Text(
+                          _usingImage
+                              ? "Image selected"
+                              : "Choose from gallery",
+                          style: TextStyle(
+                            color: _usingImage
+                                ? const Color(0xFF00885d)
+                                : Colors.grey.shade600,
+                            fontSize: 14,
+                            fontWeight: _usingImage
+                                ? FontWeight.w500
+                                : FontWeight.normal,
+                          ),
+                        ),
+                        if (_usingImage) ...[
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: () =>
+                                setState(() => _galleryImagePath = null),
+                            child: Icon(
+                              Icons.close,
+                              size: 16,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Actions
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                        ),
+                        child: Text(
+                          "Cancel",
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _save,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF00885d),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                        ),
+                        child: const Text(
+                          "Save",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
