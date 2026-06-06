@@ -38,7 +38,7 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
     final granted = await PermissionService.requestStoragePermission();
 
     if (!granted) return;
-    final files = await DataService.listBackups(_saveDirectory);
+    final files = await DataService.listBackups();
     if (mounted) setState(() => _backupFiles = files);
   }
 
@@ -50,7 +50,7 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
 
     if (!granted) return;
     try {
-      final path = await DataService.createBackup(_saveDirectory);
+      final path = await DataService.createBackup();
       await _loadBackupFiles();
       if (mounted) {
         _showSuccessDialog('Backup Created', path, isBackup: true);
@@ -553,9 +553,9 @@ class _ActionButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
+          color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.2)),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
         child: Column(
           children: [

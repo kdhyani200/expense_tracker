@@ -274,7 +274,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       children: [
         CircleAvatar(
           radius: 22,
-          backgroundColor: const Color(0xFF00885d).withOpacity(0.12),
+          backgroundColor: const Color(0xFF00885d).withValues(alpha: 0.12),
           backgroundImage: hasImage ? FileImage(File(user.imagePath!)) : null,
           child: hasImage
               ? null
@@ -364,7 +364,7 @@ class _FabOption extends StatelessWidget {
           borderRadius: BorderRadius.circular(50),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.35),
+              color: color.withValues(alpha: 0.35),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),

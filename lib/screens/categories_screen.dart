@@ -256,9 +256,12 @@ class _CategoryChip extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
+                color: color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: color.withOpacity(0.25), width: 1.2),
+                border: Border.all(
+                  color: color.withValues(alpha: 0.25),
+                  width: 1.2,
+                ),
               ),
               child: _buildIcon(),
             ),
@@ -503,7 +506,7 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
                               boxShadow: sel
                                   ? [
                                       BoxShadow(
-                                        color: c.withOpacity(0.5),
+                                        color: c.withValues(alpha: 0.5),
                                         blurRadius: 6,
                                       ),
                                     ]
@@ -560,7 +563,7 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
                             child: Container(
                               decoration: BoxDecoration(
                                 color: sel
-                                    ? _selectedColor.withOpacity(.15)
+                                    ? _selectedColor.withValues(alpha: .15)
                                     : Colors.transparent,
                                 borderRadius: BorderRadius.circular(8),
                                 border: sel
@@ -596,12 +599,12 @@ class _AddCategoryDialogState extends State<_AddCategoryDialog> {
                     ),
                     decoration: BoxDecoration(
                       color: _usingImage
-                          ? const Color(0xFF00885d).withOpacity(.06)
+                          ? const Color(0xFF00885d).withValues(alpha: .06)
                           : Theme.of(context).canvasColor,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: _usingImage
-                            ? const Color(0xFF00885d).withOpacity(.4)
+                            ? const Color(0xFF00885d).withValues(alpha: .4)
                             : Colors.grey.shade300,
                         width: _usingImage ? 1.2 : .8,
                       ),

@@ -192,7 +192,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               width: 46,
               height: 46,
               decoration: BoxDecoration(
-                color: style.color.withOpacity(0.15),
+                color: style.color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(style.icon, color: style.color, size: 22),

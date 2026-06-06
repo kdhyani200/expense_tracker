@@ -100,7 +100,7 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
                 onTap: () => setState(() => _selectedImagePath = null),
                 child: CircleAvatar(
                   radius: 10,
-                  backgroundColor: Colors.white.withOpacity(0.9),
+                  backgroundColor: Colors.white.withValues(alpha: 0.9),
                   child: const Icon(Icons.close, size: 12, color: Colors.black),
                 ),
               ),

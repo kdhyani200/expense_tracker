@@ -43,8 +43,6 @@ void main() async {
   _runApp();
 }
 
-/// Re-calling runApp tears down all providers and re-reads Hive from scratch.
-/// Used by Reset App so OnBoarding shows immediately without a device restart.
 void _runApp() {
   runApp(const ProviderScope(child: _MyApp()));
 }

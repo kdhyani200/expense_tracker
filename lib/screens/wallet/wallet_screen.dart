@@ -72,7 +72,7 @@ class WalletScreen extends ConsumerWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).canvasColor,
+                  color: isDark ? Color(0xFF1a222e) : Colors.grey[200],
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(30),
                   ),

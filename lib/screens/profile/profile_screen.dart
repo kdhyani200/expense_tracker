@@ -476,7 +476,7 @@ class ProfileScreen extends ConsumerWidget {
     if (!context.mounted) return;
 
     try {
-      final path = await DataService.exportCsv(selectedDir);
+      final path = await DataService.exportCsv();
       if (!context.mounted) return;
 
       // Open with system viewer / share sheet
@@ -507,12 +507,15 @@ class ProfileScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: Theme.of(context).canvasColor,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   path,
-                  style: const TextStyle(fontSize: 12),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).primaryColor,
+                  ),
                   maxLines: 4,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -657,7 +660,7 @@ class _Section extends StatelessWidget {
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.25),
+                color: Colors.black.withValues(alpha: 0.25),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -710,7 +713,7 @@ class _SettingTile extends StatelessWidget {
         width: 38,
         height: 38,
         decoration: BoxDecoration(
-          color: iconColor.withOpacity(0.1),
+          color: iconColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(icon, color: iconColor, size: 20),

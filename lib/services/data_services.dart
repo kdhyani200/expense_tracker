@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:open_filex/open_filex.dart';
@@ -8,44 +9,62 @@ import 'package:path_provider/path_provider.dart';
 
 import '../models/category_model.dart';
 import '../models/transaction_model.dart';
-import '../models/wallet_model.dart';
 import '../models/user_model.dart';
+import '../models/wallet_model.dart';
 import 'hive_service.dart';
 
 class DataService {
-  // ── Save directory ──────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Save Directory
+  // ─────────────────────────────────────────────────────────────────────────────
 
-  /// Always returns the app's private documents directory.
-  /// This requires zero permissions on all Android versions and is always
-  /// writable.  After saving, we call [openFile] so the user can share/copy
-  /// the file to wherever they want via the system share sheet.
-  static Future<Directory> _saveDir([String? customPath]) async {
-    if (customPath != null && customPath.isNotEmpty) {
-      final dir = Directory(customPath);
-
-      if (!await dir.exists()) {
-        await dir.create(recursive: true);
-      }
-
-      return dir;
-    }
-
+  static Future<Directory> _saveDir() async {
     return await getApplicationDocumentsDirectory();
   }
 
-  /// Opens a file with the system viewer / share sheet so the user can
-  /// save it to Downloads, Google Drive, WhatsApp, etc.
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Open File
+  // ─────────────────────────────────────────────────────────────────────────────
+
   static Future<void> openFile(String path) async {
     await OpenFilex.open(path);
   }
 
-  // ── CSV Export ──────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Save file to public Downloads/Documents using SAF
+  // Works on Android 6+
+  // ─────────────────────────────────────────────────────────────────────────────
 
-  static Future<String> exportCsv([String? saveDirPath]) async {
+  static Future<String> _exportToPublicStorage({
+    required File sourceFile,
+    required String fileName,
+    required String mimeType,
+  }) async {
+    final params = SaveFileDialogParams(
+      sourceFilePath: sourceFile.path,
+      fileName: fileName,
+      mimeTypesFilter: [mimeType],
+    );
+
+    final savedPath = await FlutterFileDialog.saveFile(params: params);
+
+    if (savedPath == null) {
+      throw Exception('File save cancelled');
+    }
+
+    return savedPath;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // CSV Export
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  static Future<String> exportCsv() async {
     final transactions = HiveService.transactionBox.values.toList()
       ..sort((a, b) => b.date.compareTo(a.date));
 
     final buf = StringBuffer();
+
     buf.writeln('Date,Type,Category,Wallet,Amount,Note');
 
     final wallets = {
@@ -56,6 +75,7 @@ class DataService {
 
     for (final tx in transactions) {
       final wallet = wallets[tx.walletId] ?? tx.walletId;
+
       final type = tx.type == TransactionType.income ? 'Income' : 'Expense';
 
       final note = tx.note.replaceAll(',', ';').replaceAll('\n', ' ');
@@ -70,20 +90,30 @@ class DataService {
       );
     }
 
-    final dir = await _saveDir(saveDirPath);
+    final dir = await _saveDir();
 
     final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
 
-    final file = File('${dir.path}/TrackKar_export_$timestamp.csv');
+    final fileName = 'TrackKar_export_$timestamp.csv';
 
-    await file.writeAsString(buf.toString());
+    final tempFile = File('${dir.path}/$fileName');
 
-    return file.path;
+    await tempFile.writeAsString(buf.toString());
+
+    final savedPath = await _exportToPublicStorage(
+      sourceFile: tempFile,
+      fileName: fileName,
+      mimeType: 'text/csv',
+    );
+
+    return savedPath;
   }
 
-  // ── Backup ──────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Backup
+  // ─────────────────────────────────────────────────────────────────────────────
 
-  static Future<String> createBackup([String? saveDirPath]) async {
+  static Future<String> createBackup() async {
     final transactions = HiveService.transactionBox.values
         .map(
           (tx) => {
@@ -143,31 +173,51 @@ class DataService {
       if (user != null) 'user': user,
     });
 
-    final dir = await _saveDir(saveDirPath);
+    final dir = await _saveDir();
 
     final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
 
-    final file = File('${dir.path}/TrackKar_backup_$timestamp.mbak');
+    final fileName = 'TrackKar_backup_$timestamp.mbak';
 
-    await file.writeAsString(payload);
+    final tempFile = File('${dir.path}/$fileName');
 
-    return file.path;
+    await tempFile.writeAsString(payload);
+
+    final savedPath = await _exportToPublicStorage(
+      sourceFile: tempFile,
+      fileName: fileName,
+      mimeType: 'application/octet-stream',
+    );
+
+    return savedPath;
   }
 
-  // ── Restore ─────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Restore Backup
+  // ─────────────────────────────────────────────────────────────────────────────
 
   static Future<int> restoreBackup(String filePath) async {
     final file = File(filePath);
-    if (!file.existsSync()) throw Exception('File not found: $filePath');
-    if (!filePath.endsWith('.mbak')) throw Exception('Not a valid .mbak file');
+
+    if (!file.existsSync()) {
+      throw Exception('File not found: $filePath');
+    }
+
+    if (!filePath.endsWith('.mbak')) {
+      throw Exception('Not a valid .mbak file');
+    }
 
     final Map<String, dynamic> data = jsonDecode(await file.readAsString());
-    if (data['version'] != 1) throw Exception('Unsupported backup version');
+
+    if (data['version'] != 1) {
+      throw Exception('Unsupported backup version');
+    }
 
     await HiveService.transactionBox.clear();
     await HiveService.walletBox.clear();
     await HiveService.categoryBox.clear();
 
+    // Wallets
     for (final r in (data['wallets'] as List)) {
       final w = WalletModel(
         id: r['id'],
@@ -176,9 +226,11 @@ class DataService {
         imagePath: r['imagePath'],
         createdAt: DateTime.parse(r['createdAt']),
       );
+
       await HiveService.walletBox.put(w.id, w);
     }
 
+    // Transactions
     for (final r in (data['transactions'] as List)) {
       final tx = TransactionModel(
         id: r['id'],
@@ -192,9 +244,11 @@ class DataService {
         date: DateTime.parse(r['date']),
         note: r['note'] ?? '',
       );
+
       await HiveService.transactionBox.put(tx.id, tx);
     }
 
+    // Categories
     for (final r in (data['categories'] as List)) {
       final c = CategoryModel(
         id: r['id'],
@@ -204,12 +258,16 @@ class DataService {
         type: r['type'],
         imagePath: r['imagePath'],
       );
+
       await HiveService.categoryBox.put(c.id, c);
     }
 
+    // User
     if (data['user'] != null) {
       final u = data['user'];
+
       await HiveService.userBox.clear();
+
       await HiveService.userBox.put(
         'current_user',
         UserModel(
@@ -223,10 +281,13 @@ class DataService {
     return (data['transactions'] as List).length;
   }
 
-  // ── List saved backups ───────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
+  // List Backups
+  // ─────────────────────────────────────────────────────────────────────────────
 
-  static Future<List<File>> listBackups([String? dirPath]) async {
-    final dir = await _saveDir(dirPath);
+  static Future<List<File>> listBackups() async {
+    final dir = await _saveDir();
+
     try {
       return dir
           .listSync()
@@ -239,10 +300,13 @@ class DataService {
     }
   }
 
-  // ── Delete helpers ───────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Delete Helpers
+  // ─────────────────────────────────────────────────────────────────────────────
 
   static Future<void> deleteAllRecords() async {
     await HiveService.transactionBox.clear();
+
     for (final w in HiveService.walletBox.values) {
       w.balance = 0;
       await w.save();
@@ -262,6 +326,7 @@ class DataService {
     await HiveService.userBox.clear();
 
     final prefs = Hive.box('preferences');
+
     await prefs.clear();
   }
 }

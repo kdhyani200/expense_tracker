@@ -113,7 +113,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
           padding: const EdgeInsets.symmetric(vertical: 7),
           decoration: BoxDecoration(
             color: selected
-                ? const Color(0xFF00885d).withOpacity(.3)
+                ? const Color(0xFF00885d).withValues(alpha: 0.12)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),

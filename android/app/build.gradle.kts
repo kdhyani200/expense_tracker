@@ -16,7 +16,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -30,27 +30,19 @@ android {
 
     buildTypes {
         release {
-
-            // TEMPORARILY DISABLE R8/MINIFY
-            // Prevents Play Core + Hive stripping issues
-            isMinifyEnabled = false
-            isShrinkResources = false
-
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-
-            // Replace with release keystore later
             signingConfig = signingConfigs.getByName("debug")
         }
-
         debug {
             isDebuggable = true
         }
     }
 
-    // Generate smaller APKs
     splits {
         abi {
             isEnable = true
@@ -66,13 +58,12 @@ flutter {
 }
 
 dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 
-    coreLibraryDesugaring(
-        "com.android.tools:desugar_jdk_libs:2.1.4"
-    )
-
-    // Fix missing Play Core classes for Flutter
-    implementation(
-        "com.google.android.play:core:1.10.3"
-    )
+    // Play Core stubs: provides empty shells of com.google.android.play.core.*
+    // classes that Flutter's engine references internally.  Without this,
+    // R8 fails with "Missing class" errors even though the app never calls
+    // these APIs.  review (not core) is the correct modern artifact.
+    implementation("com.google.android.play:review:2.0.2")
+    implementation("com.google.android.play:app-update:2.1.0")
 }

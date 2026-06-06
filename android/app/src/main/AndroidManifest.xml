@@ -2,17 +2,17 @@
 
     <uses-permission android:name="android.permission.INTERNET"/>
 
-    <!-- Android 6 - 9 -->
+    <!-- Android 6 - Android 9 -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28"/>
 
-    <!-- Android 6 - 12 -->
+    <!-- Android 6 - Android 12 -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32"/>
 
-    <!-- Android 13+ -->
+    <!-- Android 13+ media access -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
@@ -20,8 +20,7 @@
     <application
         android:label="Track Kar"
         android:name="${applicationName}"
-        android:icon="@mipmap/launcher_icon"
-        android:requestLegacyExternalStorage="true">
+        android:icon="@mipmap/launcher_icon">
 
         <activity
             android:name=".MainActivity"
@@ -51,11 +50,6 @@
     </application>
 
     <queries>
-
-        <intent>
-            <action android:name="android.intent.action.PROCESS_TEXT"/>
-            <data android:mimeType="text/plain"/>
-        </intent>
 
         <intent>
             <action android:name="android.intent.action.OPEN_DOCUMENT"/>

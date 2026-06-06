@@ -109,7 +109,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
     String? Function(T?)? validator,
   }) {
     return DropdownButtonFormField<T>(
-      initialValue: value,
+      value: value,
       isExpanded: true,
       alignment: AlignmentDirectional.bottomStart,
       menuMaxHeight: 260,
@@ -474,7 +474,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                 elevation: 0,
               ),
               child: const Text(
-                "Update Wallet",
+                "Update",
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -631,6 +631,17 @@ class _AddScreenState extends ConsumerState<AddScreen> {
       date: parsedDate,
       note: _descriptionController.text.trim(),
     );
+
+    // BUG FIX: Apply the new transaction's effect on the (possibly new) wallet.
+    // Previously this was completely missing — the old balance was reversed
+    // but the new amount was never added/subtracted.
+    await ref
+        .read(walletsProvider.notifier)
+        .updateWalletBalance(
+          walletId: selectedWallet.id,
+          amount: newAmount,
+          type: newType,
+        );
 
     await ref.read(transactionsProvider.notifier).updateTransaction(updated);
 

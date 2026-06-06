@@ -14,7 +14,11 @@ class WalletService {
     await HiveService.walletBox.delete(id);
   }
 
+  /// BUG FIX: Previously called wallet.save() on a freshly constructed
+  /// WalletModel that was never loaded from Hive, so save() silently did
+  /// nothing.  Using box.put() with the wallet's own id correctly overwrites
+  /// the stored record regardless of how the object was created.
   Future<void> updateWallet(WalletModel wallet) async {
-    await wallet.save();
+    await HiveService.walletBox.put(wallet.id, wallet);
   }
 }

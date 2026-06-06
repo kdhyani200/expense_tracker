@@ -172,7 +172,7 @@ class _AddProfilePictureScreenState
         children: [
           CircleAvatar(
             radius: 25,
-            backgroundColor: const Color(0xFF00885d).withOpacity(0.2),
+            backgroundColor: const Color(0xFF00885d).withValues(alpha: 0.2),
             child: Icon(icon, color: const Color(0xFF00885d)),
           ),
           const SizedBox(height: 8),
@@ -228,59 +228,27 @@ class _AddProfilePictureScreenState
                           children: [
                             SizedBox(height: verticalSpacing),
                             Center(
-                              child: Stack(
-                                children: [
-                                  Container(
-                                    width: profileImageSize,
-                                    height: profileImageSize,
-                                    clipBehavior: Clip.antiAlias,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Theme.of(context).shadowColor,
-                                    ),
-                                    child: _selectedImage != null
-                                        ? Image.file(
-                                            _selectedImage!,
-                                            fit: BoxFit.cover,
-                                          )
-                                        : Icon(
-                                            Icons.person,
-                                            size: profileImageSize * 0.4,
-                                            color: Colors.grey.shade400,
-                                          ),
+                              child: GestureDetector(
+                                onTap: () => _showImagePicker(context),
+                                child: Container(
+                                  width: profileImageSize,
+                                  height: profileImageSize,
+                                  clipBehavior: Clip.antiAlias,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Theme.of(context).shadowColor,
                                   ),
-                                  Positioned(
-                                    bottom: 0,
-                                    right: 0,
-                                    child: GestureDetector(
-                                      onTap: () => _showImagePicker(context),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF10b981),
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: Colors.white,
-                                            width: 2,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(
-                                                0.1,
-                                              ),
-                                              blurRadius: 5,
-                                            ),
-                                          ],
+                                  child: _selectedImage != null
+                                      ? Image.file(
+                                          _selectedImage!,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Icon(
+                                          Icons.person,
+                                          size: profileImageSize * 0.4,
+                                          color: Colors.grey.shade400,
                                         ),
-                                        child: Icon(
-                                          Icons.edit,
-                                          size: profileImageSize * 0.15,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                             if (_selectedImage != null)
