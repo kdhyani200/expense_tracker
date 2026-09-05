@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:expense_tracker/screens/profile/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -272,24 +273,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        CircleAvatar(
-          radius: 22,
-          backgroundColor: const Color(0xFF00885d).withValues(alpha: 0.12),
-          backgroundImage: hasImage ? FileImage(File(user.imagePath!)) : null,
-          child: hasImage
-              ? null
-              : Text(
-                  user == null ||
-                          (user.firstName.trim().isEmpty &&
-                              user.lastName.trim().isEmpty)
-                      ? "U"
-                      : user.firstName.trim()[0].toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF00885d),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ProfileScreen()),
+            );
+          },
+          child: CircleAvatar(
+            radius: 22,
+            backgroundColor: const Color(0xFF00885d).withValues(alpha: 0.12),
+            backgroundImage: hasImage ? FileImage(File(user.imagePath!)) : null,
+            child: hasImage
+                ? null
+                : Text(
+                    user == null ||
+                            (user.firstName.trim().isEmpty &&
+                                user.lastName.trim().isEmpty)
+                        ? "U"
+                        : user.firstName.trim()[0].toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF00885d),
+                    ),
                   ),
-                ),
+          ),
         ),
 
         const SizedBox(width: 12),
