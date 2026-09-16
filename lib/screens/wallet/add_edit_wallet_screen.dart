@@ -22,6 +22,7 @@ class AddEditWalletScreen extends ConsumerStatefulWidget {
 
 class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
   late final TextEditingController _nameController;
+  late final TextEditingController _balanceController;
   String? _selectedImagePath;
 
   bool get _isEditMode => widget.wallet != null;
@@ -30,12 +31,14 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.wallet?.name ?? '');
+    _balanceController = TextEditingController();
     _selectedImagePath = widget.wallet?.imagePath;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _balanceController.dispose();
     super.dispose();
   }
 
@@ -155,10 +158,16 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
         SnackBarUtils.showSnackBar(context, "Wallet updated!");
       }
     } else {
+      // Parse balance — empty or invalid input treated as 0.
+      final initialBalance =
+          double.tryParse(_balanceController.text.trim()) ?? 0.0;
+      // Negative initial balance doesn't make sense
+      final safeBalance = initialBalance < 0 ? 0.0 : initialBalance;
+
       final wallet = WalletModel(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: name,
-        balance: 0.0,
+        balance: safeBalance,
         imagePath: _selectedImagePath,
         createdAt: DateTime.now(),
       );
@@ -268,7 +277,44 @@ class _AddEditWalletScreenState extends ConsumerState<AddEditWalletScreen> {
                             ),
                           ),
 
-                          const SizedBox(height: 30),
+                          const SizedBox(height: 8),
+
+                          // Initial balance — only shown in add mode.
+                          // In edit mode the balance is managed via transactions.
+                          if (!_isEditMode) ...[
+                            const SizedBox(height: 10),
+
+                            Row(
+                              children: [
+                                const Text(
+                                  "Initial Wallet Balance",
+                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(width: 6),
+                                Tooltip(
+                                  message:
+                                      "The amount already in this wallet.\nLeave empty or enter 0 if starting fresh.",
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "How much money is already in this wallet?",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: _balanceController,
+                              keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
+                              decoration: _buildInputDecoration("0.00"),
+                            ),
+                            const SizedBox(height: 20),
+                          ],
 
                           const Text(
                             "Wallet Image",

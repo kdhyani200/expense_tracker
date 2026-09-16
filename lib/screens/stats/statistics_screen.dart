@@ -220,7 +220,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
                 touchTooltipData: BarTouchTooltipData(
                   getTooltipItem: (group, groupIndex, rod, rodIndex) =>
                       BarTooltipItem(
-                        "${formatAmount(rod.toY, prefs.currencySymbol, prefs.decimalPlaces)}",
+                        formatAmount(rod.toY, prefs.currencySymbol, prefs.decimalPlaces),
                         const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,

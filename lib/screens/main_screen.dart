@@ -34,12 +34,21 @@ class _MainScreenState extends State<MainScreen> {
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         selectedItemColor: const Color(0xFF00885d),
         unselectedItemColor: Colors.grey,
+
+        selectedLabelStyle: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.normal,
+        ),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
           BottomNavigationBarItem(

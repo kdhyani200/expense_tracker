@@ -23,100 +23,103 @@ class CategoriesScreen extends ConsumerWidget {
         .where((c) => c.type == 'expense')
         .toList();
 
-    return Padding(
-      padding: EdgeInsets.only(top: screenHeight * 0.08),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-        ),
-        child: Column(
-          children: [
-            Center(
-              child: Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 4),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  borderRadius: BorderRadius.circular(2),
+    return SafeArea(
+      bottom: true,
+      child: Padding(
+        padding: EdgeInsets.only(top: screenHeight * 0.08),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+          ),
+          child: Column(
+            children: [
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 12, bottom: 4),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Categories",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _SectionHeader(
-                      label: "Income",
-                      color: const Color(0xFF00885d),
-                      icon: Icons.arrow_downward_rounded,
+                    const Text(
+                      "Categories",
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 12),
-                    _CategoryGrid(
-                      builtIns: builtInIncome,
-                      customs: customIncome,
-                      onDelete: (id) => ref
-                          .read(categoryProvider.notifier)
-                          .deleteCategory(id),
-                    ),
-                    const SizedBox(height: 28),
-                    _SectionHeader(
-                      label: "Expense",
-                      color: Colors.redAccent,
-                      icon: Icons.arrow_upward_rounded,
-                    ),
-                    const SizedBox(height: 12),
-                    _CategoryGrid(
-                      builtIns: builtInExpense,
-                      customs: customExpense,
-                      onDelete: (id) => ref
-                          .read(categoryProvider.notifier)
-                          .deleteCategory(id),
-                    ),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 55,
-                      child: ElevatedButton(
-                        onPressed: () => _showAddDialog(context, ref),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF00885d),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          "Add Category",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
                   ],
                 ),
               ),
-            ),
-          ],
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SectionHeader(
+                        label: "Income",
+                        color: const Color(0xFF00885d),
+                        icon: Icons.arrow_downward_rounded,
+                      ),
+                      const SizedBox(height: 12),
+                      _CategoryGrid(
+                        builtIns: builtInIncome,
+                        customs: customIncome,
+                        onDelete: (id) => ref
+                            .read(categoryProvider.notifier)
+                            .deleteCategory(id),
+                      ),
+                      const SizedBox(height: 28),
+                      _SectionHeader(
+                        label: "Expense",
+                        color: Colors.redAccent,
+                        icon: Icons.arrow_upward_rounded,
+                      ),
+                      const SizedBox(height: 12),
+                      _CategoryGrid(
+                        builtIns: builtInExpense,
+                        customs: customExpense,
+                        onDelete: (id) => ref
+                            .read(categoryProvider.notifier)
+                            .deleteCategory(id),
+                      ),
+                      const SizedBox(height: 32),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 55,
+                        child: ElevatedButton(
+                          onPressed: () => _showAddDialog(context, ref),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF00885d),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            "Add Category",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

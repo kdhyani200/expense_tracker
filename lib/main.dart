@@ -72,7 +72,7 @@ class _MyApp extends ConsumerWidget {
     brightness: Brightness.light,
     scaffoldBackgroundColor: Colors.white,
     primaryColor: Colors.black,
-    canvasColor: Colors.white,
+    canvasColor: const Color.fromARGB(255, 248, 247, 247),
     cardColor: const Color(0xFF00885d),
     dividerColor: Colors.grey.shade100,
     shadowColor: Colors.grey.shade200,

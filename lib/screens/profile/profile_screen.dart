@@ -218,7 +218,7 @@ class ProfileScreen extends ConsumerWidget {
                     icon: Icons.info_outline,
                     iconColor: Colors.grey,
                     title: 'Version',
-                    subtitle: '1.0.0',
+                    subtitle: '1.0.1',
                     onTap: () {},
                     showChevron: false,
                   ),
