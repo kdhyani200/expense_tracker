@@ -244,20 +244,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             Icon(
               Icons.receipt_long_outlined,
               size: 80,
-              color: Colors.grey.shade300,
+              color: Colors.grey.shade600,
             ),
             const SizedBox(height: 16),
             Text(
               "No transactions yet",
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey.shade500,
+                color: Colors.grey.shade600,
                 fontWeight: FontWeight.w500,
               ),
             ),
             Text(
               "Add your first expense or income to see it here.",
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
             ),
           ],
         ),

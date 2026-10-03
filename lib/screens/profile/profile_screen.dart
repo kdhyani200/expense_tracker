@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../providers/preferences_provider.dart';
 import '../../providers/transactions_providers.dart';
 import '../../providers/user_profile.dart';
@@ -29,6 +30,34 @@ class ProfileScreen extends ConsumerWidget {
             (user.firstName.trim().isEmpty && user.lastName.trim().isEmpty))
         ? 'User'
         : '${user.firstName} ${user.lastName}'.trim();
+
+    const String _packageName = 'com.kd.expense_tracker'; // Replace with your actual package name
+
+
+    Future<void> _rateApp(BuildContext context) async {
+    final Uri marketUri = Uri.parse('market://details?id=$_packageName');
+    final Uri webUri = Uri.parse('https://google.com');
+
+    try {
+      // Close the drawer first
+      Navigator.pop(context);
+
+      // Attempt to launch the deep link directly to the native Google Play Store app
+      if (await canLaunchUrl(marketUri)) {
+        await launchUrl(marketUri, mode: LaunchMode.externalApplication);
+      } else {
+        // Fallback to opening the browser layout if the store app isn't present
+        await launchUrl(webUri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      // Handle potential routing errors gracefully
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open the store link.')),
+        );
+      }
+    }
+  }
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -218,10 +247,17 @@ class ProfileScreen extends ConsumerWidget {
                     icon: Icons.info_outline,
                     iconColor: Colors.grey,
                     title: 'Version',
-                    subtitle: '1.0.1',
+                    subtitle: '1.0.2',
                     onTap: () {},
                     showChevron: false,
                   ),
+                  _SettingTile(
+                    icon: Icons.star_outline,
+                    iconColor: Colors.grey,
+                    title: 'Rate App / Support',
+                    subtitle: 'Leave a review or contact us',
+                    onTap: () => _rateApp(context),
+                  )
                 ],
               ),
 

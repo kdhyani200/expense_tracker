@@ -42,11 +42,11 @@ class _MainScreenState extends State<MainScreen> {
         unselectedItemColor: Colors.grey,
 
         selectedLabelStyle: const TextStyle(
-          fontSize: 13,
+          fontSize: 10,
           fontWeight: FontWeight.bold,
         ),
         unselectedLabelStyle: const TextStyle(
-          fontSize: 12,
+          fontSize: 9,
           fontWeight: FontWeight.normal,
         ),
         items: const [

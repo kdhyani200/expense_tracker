@@ -329,4 +329,6 @@ class DataService {
 
     await prefs.clear();
   }
+
+  static void openUrl(String s) {}
 }

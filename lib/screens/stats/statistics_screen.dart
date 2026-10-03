@@ -302,21 +302,20 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
 
     // ── Monthly: today on left → 1st of month on right ───────────────────
     if (_selected == StatsType.monthly) {
-      final firstDay = DateTime(now.year, now.month, 1);
-      final dayCount = now.difference(firstDay).inDays + 1;
-
-      return List.generate(dayCount, (index) {
-        final date = now.subtract(Duration(days: index));
+      return List.generate(12, (index) {
+        // index 0 = January, index 11 = December
+        final month = index + 1;
         double income = 0, expense = 0;
         for (final tx in transactions) {
-          if (_isSameDay(tx.date, date)) {
+          if (tx.date.year == now.year && tx.date.month == month) {
             tx.type == TransactionType.income
                 ? income += tx.amount
                 : expense += tx.amount;
           }
         }
         return _ChartData(
-          label: DateFormat('d MMM').format(date),
+          // Short month name: Jan, Feb … Dec
+          label: DateFormat('MMM').format(DateTime(now.year, month)),
           income: income,
           expense: expense,
         );
@@ -324,7 +323,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
     }
 
     // ── Yearly: current year on left → 4 years ago on right ─────────────
-    return List.generate(4, (index) {
+    return List.generate(5, (index) {
       final year = now.year - index;
       double income = 0, expense = 0;
       for (final tx in transactions) {
