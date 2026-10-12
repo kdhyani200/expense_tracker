@@ -1,19 +1,33 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET"/>
 
-    <!-- Android 6 - Android 9 -->
+    <!-- Storage write: Android 6–9 (API 21–28) only -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28"/>
 
-    <!-- Android 6 - Android 12 -->
+    <!-- Storage read: Android 6–12 (API 21–32) only -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32"/>
 
-    <!-- Android 13+ media access -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <!--
+        Explicitly REMOVE READ_MEDIA_IMAGES and READ_MEDIA_VIDEO that
+        image_picker and permission_handler inject via their own manifests.
+        tools:node="remove" prevents them from appearing in the merged
+        manifest that Google Play inspects.
+    -->
+    <uses-permission
+        android:name="android.permission.READ_MEDIA_IMAGES"
+        tools:node="remove"/>
+    <uses-permission
+        android:name="android.permission.READ_MEDIA_VIDEO"
+        tools:node="remove"/>
+    <uses-permission
+        android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED"
+        tools:node="remove"/>
 
     <application
         android:label="Track Kar"
@@ -48,21 +62,17 @@
     </application>
 
     <queries>
-
         <intent>
             <action android:name="android.intent.action.OPEN_DOCUMENT"/>
             <data android:mimeType="*/*"/>
         </intent>
-
         <intent>
             <action android:name="android.intent.action.OPEN_DOCUMENT_TREE"/>
         </intent>
-
         <intent>
             <action android:name="android.intent.action.VIEW"/>
             <data android:mimeType="*/*"/>
         </intent>
-
     </queries>
 
 </manifest>
