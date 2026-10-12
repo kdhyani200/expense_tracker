@@ -1,70 +1,46 @@
-import 'package:expense_tracker/models/transaction_item.dart';
-import 'package:expense_tracker/providers/transactions_providers.dart';
-import 'package:expense_tracker/providers/wallet_providers.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../snackbar_util.dart';
 
-class TransactionItemCard extends ConsumerStatefulWidget {
-  final Transaction transaction;
+import '../models/transaction_model.dart';
+import '../providers/preferences_provider.dart';
+import '../utils/amount_formatter.dart';
+import '../providers/category_provider.dart';
+import '../utils/category_styles.dart';
+import '../screens/add/add_screen.dart';
+
+class TransactionItemCard extends ConsumerWidget {
+  final TransactionModel transaction;
 
   const TransactionItemCard({super.key, required this.transaction});
 
   @override
-  ConsumerState<TransactionItemCard> createState() =>
-      _TransactionItemCardState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final customCats = ref.watch(categoryProvider);
+    final prefs = ref.watch(preferencesProvider);
 
-class _TransactionItemCardState extends ConsumerState<TransactionItemCard> {
-  @override
-  Widget build(BuildContext context) {
-    final bool isIncome = widget.transaction.type == Type.Income;
-    final Color categoryColor = widget.transaction.category.color;
-    final IconData categoryIcon = widget.transaction.category.icon;
+    final isIncome = transaction.type == TransactionType.income;
 
-    return Dismissible(
-      key: Key(widget.transaction.id),
-      direction: DismissDirection.endToStart,
-      onDismissed: (direction) {
-        final reverseType = isIncome ? Type.Expense : Type.Income;
+    final style = styleForTransaction(transaction, customCats);
 
-        ref
-            .read(walletsProvider.notifier)
-            .updateWalletBalance(
-              widget.transaction.wallet,
-              widget.transaction.amount,
-              reverseType,
-            );
-
-        ref
-            .read(transactionsProvider.notifier)
-            .deleteTransaction(widget.transaction.id);
-
-        SnackBarUtils.showSnackBar(
-          context,
-          "Transaction deleted and balance adjusted",
-        );
-      },
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.redAccent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: const Icon(Icons.delete, color: Colors.white),
+    return GestureDetector(
+      onTap: () => showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.transparent,
+        isScrollControlled: true,
+        builder: (_) => AddScreen(existing: transaction),
       ),
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).canvasColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Theme.of(context).shadowColor,
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -72,38 +48,34 @@ class _TransactionItemCardState extends ConsumerState<TransactionItemCard> {
         ),
         child: Row(
           children: [
+            // ── Icon / image badge ──────────────────────────────────
             Container(
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: isIncome
-                    ? const Color(0xFF00885d).withOpacity(0.1)
-                    : categoryColor.withOpacity(0.1),
+                color: style.color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: isIncome
-                  ? const Icon(
-                      Icons.monetization_on,
-                      color: Color(0xFF00885d),
-                      size: 26,
-                    )
-                  : Icon(categoryIcon, color: categoryColor, size: 26),
+              child: _buildBadge(style),
             ),
+
             const SizedBox(width: 16),
+
+            // ── Category + note ─────────────────────────────────────
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isIncome ? "Income" : widget.transaction.category.name,
+                    transaction.category,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  if (widget.transaction.description != null)
+                  if (transaction.note.isNotEmpty)
                     Text(
-                      widget.transaction.description!,
+                      transaction.note,
                       style: TextStyle(
                         color: Colors.grey.shade500,
                         fontSize: 12,
@@ -114,22 +86,32 @@ class _TransactionItemCardState extends ConsumerState<TransactionItemCard> {
                 ],
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+
+            // ── Amount + date + chevron ─────────────────────────────
+            Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  "${isIncome ? '+ ' : '- '}₹${widget.transaction.amount}",
-                  style: TextStyle(
-                    color: isIncome
-                        ? const Color(0xFF00885d)
-                        : Colors.redAccent,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                Text(
-                  DateFormat('d MMM').format(widget.transaction.date),
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      "${isIncome ? '+' : '-'} ${formatAmount(transaction.amount, prefs.currencySymbol, prefs.decimalPlaces)}",
+                      style: TextStyle(
+                        color: isIncome
+                            ? const Color(0xFF00885d)
+                            : Colors.redAccent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    Text(
+                      _formatDateTime(transaction.date),
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -137,5 +119,39 @@ class _TransactionItemCardState extends ConsumerState<TransactionItemCard> {
         ),
       ),
     );
+  }
+
+  Widget _buildBadge(CategoryStyle style) {
+    final path = style.imagePath;
+
+    if (path != null && File(path).existsSync()) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(15),
+        child: Image.file(File(path), fit: BoxFit.cover),
+      );
+    }
+
+    return Icon(style.icon, color: style.color, size: 24);
+  }
+
+  String _formatDateTime(DateTime d) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    final time = DateFormat('hh:mm a').format(d);
+
+    return '${d.day} ${months[d.month - 1]} ${d.year} • $time';
   }
 }

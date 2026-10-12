@@ -1,4 +1,3 @@
-import 'package:expense_tracker/screens/add/add_screen.dart';
 import 'package:expense_tracker/screens/home/home_screen.dart';
 import 'package:expense_tracker/screens/profile/profile_screen.dart';
 import 'package:expense_tracker/screens/stats/statistics_screen.dart';
@@ -15,34 +14,18 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  final int _addTransactionIndex = 2;
-
-  void _openAddTransactionScreen() {
-    showModalBottomSheet(
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      context: context,
-      builder: (ctx) => const AddScreen(),
-    );
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   final List<Widget> _pages = [
     const HomeScreen(),
     const StatisticsScreen(),
-    const SizedBox(),
     const WalletScreen(),
     const ProfileScreen(),
   ];
-
-  void _onItemTapped(int index) {
-    if (index == _addTransactionIndex) {
-      _openAddTransactionScreen();
-    } else {
-      setState(() {
-        _selectedIndex = index;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,22 +33,27 @@ class _MainScreenState extends State<MainScreen> {
       body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         selectedItemColor: const Color(0xFF00885d),
         unselectedItemColor: Colors.grey,
+
+        selectedLabelStyle: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.normal,
+        ),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart_rounded),
             label: 'Stats',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_box_rounded),
-            label: 'Add',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_balance_wallet_rounded),

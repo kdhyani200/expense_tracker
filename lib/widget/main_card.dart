@@ -1,63 +1,63 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/transaction_model.dart';
+import '../providers/preferences_provider.dart';
 import '../providers/transactions_providers.dart';
 import '../providers/wallet_providers.dart';
+import '../utils/amount_formatter.dart';
 
-class MainCard extends ConsumerStatefulWidget {
+class MainCard extends ConsumerWidget {
   const MainCard({super.key});
 
   @override
-  ConsumerState<MainCard> createState() => _MainCardState();
-}
-
-class _MainCardState extends ConsumerState<MainCard> {
-  @override
-  Widget build(BuildContext context) {
-    final transactionLogic = ref.watch(transactionsProvider.notifier);
-    final overallIncome = transactionLogic.totalIncome;
-    final overExpense = transactionLogic.totalExpenses;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final transactions = ref.watch(transactionsProvider);
     final allWallets = ref.watch(walletsProvider);
-    double total = allWallets.fold(
-      0,
-      (sum, item) => sum + double.parse(item.amount),
-    );
+    final prefs = ref.watch(preferencesProvider);
 
-    final media = MediaQuery.of(context);
+    final double income = transactions
+        .where((t) => t.type == TransactionType.income)
+        .fold(0.0, (s, t) => s + t.amount);
+    final double expense = transactions
+        .where((t) => t.type == TransactionType.expense)
+        .fold(0.0, (s, t) => s + t.amount);
+    final double total = allWallets.fold(0.0, (s, w) => s + w.balance);
+
+    final sym = prefs.currencySymbol;
+    final dec = prefs.decimalPlaces;
+
     return Container(
       width: double.infinity,
-      height: media.size.height * 0.28,
+      height: MediaQuery.of(context).size.height * 0.28,
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
-        color: const Color(0xFF10b981),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF00787a), Color(0xFF10b981)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF10b981).withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           const Text(
-            "TOTAL BALANCE",
+            'TOTAL BALANCE',
             style: TextStyle(
               color: Colors.white70,
               letterSpacing: 1.2,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
               fontSize: 12,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            "₹${total}",
+            formatAmount(total, sym, dec),
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 32,
+              fontSize: 28,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -67,15 +67,15 @@ class _MainCardState extends ConsumerState<MainCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildBalanceDetail(
-                icon: Icons.arrow_downward,
-                label: "Income",
-                amount: "₹$overallIncome",
+              _detail(
+                Icons.arrow_downward,
+                'Income',
+                formatAmount(income, sym, dec),
               ),
-              _buildBalanceDetail(
-                icon: Icons.arrow_upward,
-                label: "Expense",
-                amount: "₹$overExpense",
+              _detail(
+                Icons.arrow_upward,
+                'Expense',
+                formatAmount(expense, sym, dec),
               ),
             ],
           ),
@@ -84,20 +84,16 @@ class _MainCardState extends ConsumerState<MainCard> {
     );
   }
 
-  Widget _buildBalanceDetail({
-    required IconData icon,
-    required String label,
-    required String amount,
-  }) {
+  Widget _detail(IconData icon, String label, String amount) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.2),
+            color: Colors.white.withValues(alpha: .2),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: Colors.white, size: 20),
+          child: Icon(icon, color: Colors.white, size: 18),
         ),
         const SizedBox(width: 8),
         Column(
@@ -105,14 +101,14 @@ class _MainCardState extends ConsumerState<MainCard> {
           children: [
             Text(
               label,
-              style: const TextStyle(color: Colors.white70, fontSize: 16),
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
             ),
             Text(
               amount,
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 18,
+                fontSize: 16,
               ),
             ),
           ],
